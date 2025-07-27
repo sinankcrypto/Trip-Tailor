@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.so
+
+# Environment
+.env
+*.env
+
+# Virtual envs
+venv/
+env/
+.proenv/
+
+# IDEs
+.vscode/
+.idea/
+
+# Django
+*.log
+staticfiles/
+media/
+
+# Migrations (optional if you want to track them manually)
+**/migrations/*.pyc
+**/migrations/__pycache__/
+
+# OS
+.DS_Store
+Thumbs.db

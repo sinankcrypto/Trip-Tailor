@@ -1,0 +1,1 @@
+from user_auth.domain.models import CustomUser
