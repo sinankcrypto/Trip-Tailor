@@ -1,13 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import userApi from "../../../../api/userApi";
 import { signupUser } from "../services/authService";
 
 export const useUserSignup = () => {
     const navigate = useNavigate()
 
-    const signup = async (credentials) => {
+    const signup = async (formData) => {
         try{
-            const res = await signupUser(credentials)
+            const res = await signupUser(formData)
             console.log(res.message)
 
             navigate('/user/verify-otp',{

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from ..domain.models import CustomUser
+from agency_app.domain.models import AgencyProfile
 
 class UserLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -8,10 +9,11 @@ class UserLoginSerializer(serializers.Serializer):
 
 class UserSignupSerializer(serializers.ModelSerializer):
     confirm_password = serializers.CharField(write_only= True)
+    role = serializers.ChoiceField(choices=['user', 'agency'], write_only=True)
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'password','confirm_password']
+        fields = ['username', 'email', 'password','confirm_password', 'role']
         extra_kwargs = {
             'password': {'write_only': True},
         }
@@ -23,14 +25,46 @@ class UserSignupSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop('confirm_password')
-        user = CustomUser.objects.create_user(**validated_data, is_active = False)
+        
+        role = validated_data.pop('role', 'user')  # Get role from validated_data
+        is_agency = True if role == 'agency' else False
+
+        user = CustomUser.objects.create_user(
+            **validated_data,
+            is_agency=is_agency,
+            is_active=False
+        )
         return user
+
     
 class OTPVerifySerializer(serializers.Serializer):
     email = serializers.EmailField()
     otp = serializers.CharField(max_length= 6)
 
 class CustomUserSerializer(serializers.ModelSerializer):
+    verified = serializers.SerializerMethodField()
+
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'email']
+        fields = ['id', 'username', 'email', 'is_active','is_agency', 'verified']
+
+    def get_verified(self, obj):
+        if obj.is_agency:
+            try:
+                return obj.agency_profile.verified
+            except AgencyProfile.DoesNotExist:
+                return False
+        return None
+
+class AgencyListSerializer(serializers.Serializer):
+    is_verified = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'username', 'email', 'phone_number','is_verified']
+    
+    def get_is_verified(self, obj):
+        try:
+            return obj.agency_profile.is_verified
+        except AgencyProfile.DoesNotExist:
+            return False

@@ -1,8 +1,11 @@
 import { Routes, Route } from 'react-router-dom';
-import Login from '../features/admin/pages/Login';
-import Dashboard from '../features/admin/pages/Dashboard';
-import Layout from '../layouts/admin/AdminLayout';
-import RequireAdminAuth from '../auth/RequireAdminAuth'; // adjust path if needed
+import Login from '../pages/Login';
+import Dashboard from '../pages/Dashboard';
+import Layout from '../../../layouts/admin/AdminLayout';
+import RequireAdminAuth from '../../../auth/RequireAdminAuth';
+import Users from '../pages/Users';
+import Agencies from '../pages/Agencies';
+import AgencyDetials from '../pages/AgencyDetials';
 
 const AdminRoutes = () => {
   return (
@@ -20,7 +23,9 @@ const AdminRoutes = () => {
         }
       >
         <Route path="dashboard" element={<Dashboard />} />
-        {/* Other nested routes like users, agencies, etc. can go here */}
+        <Route path="users" element={<Users/> }/>
+        <Route path="agencies" element={<Agencies/>} />
+        <Route path="agencies/:id" element={<AgencyDetials/>} />
       </Route>
     </Routes>
   );

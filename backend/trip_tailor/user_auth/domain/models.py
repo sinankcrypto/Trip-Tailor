@@ -11,6 +11,7 @@ class CustomUser(AbstractUser):
     is_deleted = models.BooleanField(default=False)
     notification_status = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_agency = models.BooleanField(default=False)
 
     def __str__(self):
         return self.username

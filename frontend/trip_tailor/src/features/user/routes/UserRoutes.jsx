@@ -9,11 +9,11 @@ import Home from "../home/pages/Home";
 const UserRoutes = () => {
   return (
     <Routes>
+      <Route path="/user/Home" element = { <Home/> } />
       <Route path="/user" element={<UserLayout/>}>
         <Route path="signup" element={<Signup/>} />
         <Route path="login" element={<Login/>} />
         <Route path="verify-otp" element={<VerifyOtp/>} />
-        <Route path="Home" element = { <Home/> } />
       </Route>
     </Routes>
   )
