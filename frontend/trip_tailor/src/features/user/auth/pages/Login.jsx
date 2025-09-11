@@ -6,7 +6,6 @@ import logo from '../../../../assets/authentication/logo.png'
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('user');
   const [errors, setErrors] = useState({});
 
   const { login, loading } = useUserLogin();
@@ -49,32 +48,7 @@ const Login = () => {
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Role Toggle */}
-        <div className="flex justify-center gap-4 mb-4">
-          <button
-            type="button"
-            className={`px-4 py-2 rounded-md font-semibold border ${
-              role === 'user'
-                ? 'bg-green-600 text-white border-green-600'
-                : 'bg-white text-green-700 border-green-500'
-            }`}
-            onClick={() => setRole('user')}
-          >
-            User
-          </button>
-          <button
-            type="button"
-            className={`px-4 py-2 rounded-md font-semibold border ${
-              role === 'agency'
-                ? 'bg-green-600 text-white border-green-600'
-                : 'bg-white text-green-700 border-green-500'
-            }`}
-            onClick={() => setRole('agency')}
-          >
-            Agency
-          </button>
-        </div>
-
+        
         {/* Username */}
         <div>
           <input

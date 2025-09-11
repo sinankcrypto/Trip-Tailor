@@ -9,6 +9,7 @@ class UserProfileEntity:
     last_name: str
     place: Optional[str] = None
     profile_pic: Optional[str] = None
+    phone_number: Optional[str] = None
 
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"

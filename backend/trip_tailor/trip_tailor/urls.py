@@ -22,7 +22,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
 from user_auth.interface.views import RefreshTokenCookieView
-from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -43,6 +43,8 @@ urlpatterns = [
     path('api/admin-panel/',include('admin_app.interface.urls')),
     path('api/user/', include('user_auth.interface.urls')),
     path('api/agency/', include('agency_app.interface.urls')),
+    path('api/user/', include('users.interface.urls')),
+    path("api/auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),       
     path('api/token/refresh-cookie/', RefreshTokenCookieView.as_view(), name='refresh-cookie'),
 

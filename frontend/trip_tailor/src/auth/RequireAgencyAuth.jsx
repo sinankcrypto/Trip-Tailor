@@ -6,11 +6,11 @@ const RequireAgencyAuth = () => {
     const { user } = useUserStore();
 
     if (!user){
-        return <Navigate to= "user/login" replace />
+        return <Navigate to= "/user/login" replace />
     }
 
     if (!user.is_agency){
-        return <Navigate to= "user/home" replace /> 
+        return <Navigate to= "/user/home" replace /> 
     }
 
   return <Outlet/>

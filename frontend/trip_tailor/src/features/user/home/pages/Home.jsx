@@ -47,9 +47,13 @@ const Home = () => {
 
               {showDropdown && (
                 <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg z-50 overflow-hidden">
-                  <div className="px-4 py-2 border-b">
-                    <span className="font-medium">Hi, {user.username}</span>
-                  </div>
+                  <button
+                    onClick={() => navigate("/user/profile")}
+                    className="w-full text-left px-4 py-2 border-b font-medium bg-white hover:bg-gray-100 transition rounded"
+                  >
+                    My Profile
+                  </button>
+
                   <button
                     onClick={handleLogout}
                     className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"

@@ -8,7 +8,7 @@ class DjangoProfileRepository(AbstractProfileRepository):
 
     def create_profile(self, user, data: dict):
         profile_pic_url = None
-        if "profile_pic" in data:
+        if "profile_pic" in data and data["profile_pic"]:
             profile_pic_url = CloudinaryService.upload_image(data["profile_pic"])
 
         profile = UserProfile.objects.create(
@@ -25,7 +25,7 @@ class DjangoProfileRepository(AbstractProfileRepository):
     def update_profile(self, user, data: dict):
         profile = UserProfile.objects.get(user=user)
 
-        if "profile_pic" in data:
+        if "profile_pic" in data and data["profile_pic"]:
             profile.profile_pic = CloudinaryService.upload_image(data["profile_pic"])
 
         profile.first_name = data.get("first_name", profile.first_name)
