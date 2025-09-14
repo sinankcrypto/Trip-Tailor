@@ -4,8 +4,8 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from ..domain.models import AgencyProfile
-from ..repository.agency_repository import AgencyRepository
+from agency_app.models import AgencyProfile
+from .repository.agency_repository import AgencyRepository
 from .serializer import AgencyProfileSerializer
 from rest_framework import status
 

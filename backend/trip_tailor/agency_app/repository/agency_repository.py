@@ -1,5 +1,5 @@
 from user_auth.domain.models import CustomUser
-from ..domain.models import AgencyProfile
+from agency_app.models import AgencyProfile
 
 class AgencyRepository:
     @staticmethod

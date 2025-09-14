@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from ..domain.models import CustomUser
-from agency_app.domain.models import AgencyProfile
+from agency_app.models import AgencyProfile
 
 class UserLoginSerializer(serializers.Serializer):
     username = serializers.CharField()

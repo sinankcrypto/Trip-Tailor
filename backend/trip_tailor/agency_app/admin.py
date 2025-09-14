@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .domain.models import AgencyProfile
+from agency_app.models import AgencyProfile
 
 # Register your models here.
 

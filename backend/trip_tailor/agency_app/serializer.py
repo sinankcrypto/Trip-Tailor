@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from agency_app.domain.models import AgencyProfile
+from agency_app.models import AgencyProfile
 
 class AgencyProfileSerializer(serializers.ModelSerializer):
     class Meta:
