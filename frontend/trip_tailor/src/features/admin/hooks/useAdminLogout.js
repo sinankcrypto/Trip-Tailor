@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom"
-import adminApi from "../../../api/adminApi"
+import apiClient from "../../../api/apiClient"
 
 
 export const useAdminLogout = () => {
@@ -7,7 +7,7 @@ export const useAdminLogout = () => {
 
     const logout = async () => {
         try{
-            await adminApi.post('logout/')
+            await apiClient.post('admin-panel/logout/')
         } catch (err) {
             console.error('Logout error:', err )
         } finally {

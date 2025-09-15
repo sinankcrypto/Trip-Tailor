@@ -1,6 +1,6 @@
-import adminApi from "../../../api/adminApi";
+import apiClient from "../../../api/apiClient";
 
 export const getAllUsers = async () => {
-    const response = await adminApi.get('/users/');
+    const response = await apiClient.get('admin-panel/users/');
     return response.data;
 };

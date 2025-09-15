@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import adminApi from '../api/adminApi'
+import apiClient from '../api/apiClient'
 
 const RequireAdminAuth = ({ children }) => {
 
@@ -11,7 +11,7 @@ const RequireAdminAuth = ({ children }) => {
     useEffect(() => {
         const checkAuth = async () => {
             try{
-                await adminApi.get('profile/')
+                await apiClient.get('admin-panel/profile/')
                 setAuthenticated(true)
             } catch (err){
                 navigate('/admin-panel/login')

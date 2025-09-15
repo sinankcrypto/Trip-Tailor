@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import adminApi from '../../../api/adminApi'
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import apiClient from '../../../api/apiClient';
 
 const Dashboard = () => {
 
@@ -13,7 +13,7 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchAdmin = async () => {
             try{
-                const res = await adminApi.get('profile/',{
+                const res = await apiClient.get('admin-panel/profile/',{
                   withCredentials: true
                 })
                 setAdmin(res.data)

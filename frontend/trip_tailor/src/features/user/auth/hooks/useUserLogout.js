@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom"
 import { useUserStore } from "../../store/useUserStore"
-import userApi from "../../../../api/userApi"
+import apiClient from "../../../../api/apiClient"
 
 
 export const useUserLogout = () => {
@@ -9,7 +9,7 @@ export const useUserLogout = () => {
 
     const logout = async () => {
         try{
-            await userApi.post('/logout/')
+            await apiClient.post('/user/logout/')
             clearUser()
             navigate('/user/login')
         } catch (err) {

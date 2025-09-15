@@ -1,6 +1,5 @@
 import { use, useEffect, useState } from "react";
-import agencyApi from "../../../api/agencyApi";
-import adminApi from "../../../api/adminApi";
+import apiClient from "../../../api/apiClient";
 
 export const useProfile = () => {
     const [profile, setProfile] = useState(null)
@@ -8,7 +7,7 @@ export const useProfile = () => {
 
     const fetchProfile = async () => {
         try{
-            const res = await agencyApi.get('/profile/')
+            const res = await apiClient.get('/agency/profile/')
             setProfile(res.data)
             console.log(res.data)
         } catch (err) {
@@ -20,7 +19,7 @@ export const useProfile = () => {
 
     const updateProfile = async (updatedData) => {
         try{
-            const res = await agencyApi.put('/profile/', updatedData, {
+            const res = await apiClient.put('/agency/profile/', updatedData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },

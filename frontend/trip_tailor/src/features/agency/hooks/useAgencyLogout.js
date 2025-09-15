@@ -1,7 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUserStore } from '../../user/store/useUserStore'
-import agencyApi from '../../../api/agencyApi'
+import apiClient from '../../../api/apiClient'
 
 const useAgencyLogout = () => {
     const navigate = useNavigate()
@@ -9,7 +9,7 @@ const useAgencyLogout = () => {
 
     const logout = async () => {
         try {
-            await agencyApi.post('/logout/');
+            await apiClient.post('/agency/logout/');
             
             clearUser();
             navigate('/user/login'); 
