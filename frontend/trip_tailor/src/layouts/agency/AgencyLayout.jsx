@@ -30,6 +30,12 @@ const AgencyLayout = () => {
           >
             Profile
           </Link>
+          <Link
+            to="/agency/my-packages"
+            className={`block px-4 py-2 rounded-md hover:bg-green-50 hover:text-green-700 transition ${isActive('/agency/my-packages')}`}
+          >
+            Packages
+          </Link>
 
           {/* Logout Button */}
           <button

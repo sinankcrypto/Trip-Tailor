@@ -5,6 +5,9 @@ from django.shortcuts import get_object_or_404
 
 class PackageRepository:
     def create_package(self, agency, data:dict, images: list = None):
+        if Package.objects.filter(agency = agency, title = data["title"], is_deleted = False).exists():
+            raise ValueError("You already have a package with this title.")
+        
         package = Package.objects.create(
             agency = agency,
             title = data["title"],
@@ -43,7 +46,7 @@ class PackageRepository:
         return package
     
     def get_all(self):
-        return Package.objects.all()
+        return Package.objects.filter(is_listed = True, is_deleted = False)
     
     def get_by_id(self,pk):
         return Package.objects.get(pk = pk)
