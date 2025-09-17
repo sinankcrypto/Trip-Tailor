@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import Login from '../pages/Login';
 import Dashboard from '../pages/Dashboard';
 import Layout from '../../../layouts/admin/AdminLayout';
@@ -10,7 +10,6 @@ import AgencyDetials from '../pages/AgencyDetials';
 const AdminRoutes = () => {
   return (
     <Routes>
-      {/* Public route */}
       <Route path="/admin-panel/login" element={<Login />} />
 
       {/* Protected layout and nested routes */}
@@ -28,6 +27,7 @@ const AdminRoutes = () => {
         <Route path="agencies/:id" element={<AgencyDetials/>} />
       </Route>
     </Routes>
+    
   );
 };
 

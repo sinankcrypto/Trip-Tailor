@@ -115,8 +115,10 @@ class AgencyDetailsView(APIView):
                 ]),
                 'agency_name': profile.agency_name,
                 'phone_number': profile.phone_number,
-                'profile_pic': request.build_absolute_uri(profile.profile_pic.url),
-                'license_document': request.build_absolute_uri(profile.license_document.url),
+                'profile_pic': request.build_absolute_uri(profile.profile_pic.url) if profile.profile_pic else None,
+                'license_document':(
+                    request.build_absolute_uri(profile.license_document.url) if profile.profile_pic else None
+                ), 
                 'address': profile.address,
                 'description': profile.description,
                 'is_verified': profile.verified
@@ -126,6 +128,7 @@ class AgencyDetailsView(APIView):
         
         except CustomUser.DoesNotExist:
             return Response({'detail': 'Agency not found'}, status=404)
+        
         
 class AgencyVerifyView(APIView):
     permission_classes= [IsAdminUser]

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
-import adminApi from '../../../api/adminApi';
+import apiClient from '../../../api/apiClient';
 
 const AgencyDetials = () => {
     const {id} = useParams()
@@ -11,7 +11,7 @@ const AgencyDetials = () => {
     useEffect(() => {
     const fetchAgency = async () => {
       try {
-        const res = await adminApi.get(`agencies/${id}/`);
+        const res = await apiClient.get(`admin-panel/agencies/${id}/`);
         setAgency(res.data);
       } catch (err) {
         console.error('Failed to fetch agency:', err);
@@ -25,7 +25,7 @@ const AgencyDetials = () => {
 
   const handleVerify = async () => {
     try {
-      await adminApi.post(`agencies/${id}/verify/`);
+      await apiClient.post(`admin-panel/agencies/${id}/verify/`);
       setAgency(prev => ({ ...prev, is_verified: true }));
       navigate('agencies')
     } catch (err) {

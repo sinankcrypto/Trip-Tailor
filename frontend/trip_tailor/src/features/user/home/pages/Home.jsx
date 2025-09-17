@@ -30,7 +30,14 @@ const Home = () => {
         {/* Navigation links */}
         <ul className="flex gap-6 font-medium text-sm md:text-base items-center">
           <li className="hover:text-green-300 transition cursor-pointer">Home</li>
-          <li className="hover:text-green-300 transition cursor-pointer">Discover</li>
+          <li>
+            <Link
+              to="/packages"
+              className="hover:text-green-300 transition cursor-pointer"
+            >
+              Packages
+            </Link>
+          </li>
           <li className="hover:text-green-300 transition cursor-pointer">Services</li>
           <li className="hover:text-green-300 transition cursor-pointer">About Us</li>
           <li className="hover:text-green-300 transition cursor-pointer">Contact Us</li>

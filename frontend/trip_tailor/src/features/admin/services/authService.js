@@ -1,6 +1,6 @@
-import adminApi from "../../../api/adminApi"
+import apiClient from "../../../api/apiClient"
 
 export const loginAdmin = async (credentials) => {
-    const response = await adminApi.post('login/', credentials)
+    const response = await apiClient.post('admin-panel/login/', credentials)
     return response.data
 }

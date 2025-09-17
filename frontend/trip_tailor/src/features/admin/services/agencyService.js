@@ -1,6 +1,6 @@
-import adminApi from "../../../api/adminApi";
+import apiClient from "../../../api/apiClient";
 
 export const getAllAgencies = async () => {
-    const response = await adminApi.get('/agencies/')
+    const response = await apiClient.get('admin-panel/agencies/')
     return response.data;
 }

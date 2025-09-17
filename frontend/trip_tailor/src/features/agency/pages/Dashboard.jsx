@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import AgencyLayout from '../../../layouts/agency/AgencyLayout'
 import DashboardStatsCard from '../../../components/agency/DashboardStatsCard'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
-import agencyApi from '../../../api/agencyApi';
+import apiClient from '../../../api/apiClient';
 
 const data = [
   { name: 'Mon', bookings: 5 },
@@ -22,7 +21,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchStatus = async () => {
       try{
-        const res = await agencyApi.get('profile/status');
+        const res = await apiClient.get('agency/profile/status');
         setStatus(res.data);
 
       } catch (err) {

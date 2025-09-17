@@ -5,6 +5,7 @@ import App from './App.jsx'
 import { BrowserRouter } from 'react-router-dom'
 import '@fontsource/inter';
 import '@fontsource/lexend/index.css';
+import "react-image-crop/dist/ReactCrop.css";
 
 
 

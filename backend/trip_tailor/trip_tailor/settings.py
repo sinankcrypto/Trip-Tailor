@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'admin_app',
     'agency_app',
     'users',
+    'packages',
 ]
 
 MIDDLEWARE = [
