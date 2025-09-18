@@ -6,13 +6,16 @@ class BookingRepository:
         return Booking.objects.create(**data)
     
     def get_all_by_user(self, user):
-        return Booking.objects.filter(user=user)
+        return Booking.objects.select_related("package", "user").filter(user=user)
 
     def get_all_by_agency(self, agency):
-        return Booking.objects.filter(agency=agency)
+        return Booking.objects.select_related("package", "user").filter(agency=agency)
 
     def get_by_id(self, booking_id):
-        return get_object_or_404(Booking, id = booking_id)
+        try:
+            return Booking.objects.select_related("package", "user").get(id=booking_id)
+        except Booking.DoesNotExist:
+            return None
     
     def update_payment_status(self, booking, status):
         booking.payment_status = status

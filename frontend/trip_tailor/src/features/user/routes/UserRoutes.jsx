@@ -22,6 +22,7 @@ const UserRoutes = () => {
       <Route element={<UserLayout/>}>
         <Route path="/packages/" element={<PackagesPage/>} /> 
         <Route path='/packages/:id' element= {<PackageDetailPage/>} />
+        
       </Route>    
       <Route element= {<RequireUserAuth/> }>
         <Route path="/user" element= {<ProfileLayout/>} >

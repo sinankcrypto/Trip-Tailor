@@ -1,9 +1,9 @@
-// src/features/packages/pages/PackageDetailPage.jsx
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useGetOnePackage } from "../hooks/useGetOnePackage";
 
 const PackageDetailPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate(); // 👈 add this
   const { packagedata, loading, error } = useGetOnePackage(id);
 
   if (loading) {
@@ -75,7 +75,11 @@ const PackageDetailPage = () => {
               </div>
             </div>
 
-            <button className="w-full sm:w-auto px-6 py-3 bg-green-600 text-white font-semibold rounded-xl shadow-md hover:bg-green-700 transition">
+            {/* Book Now Button with navigation */}
+            <button
+              onClick={() => navigate(`/book/${id}`)} // 👈 redirects to booking page
+              className="w-full sm:w-auto px-6 py-3 bg-green-600 text-white font-semibold rounded-xl shadow-md hover:bg-green-700 transition"
+            >
               Book Now
             </button>
           </div>

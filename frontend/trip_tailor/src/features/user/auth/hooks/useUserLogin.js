@@ -26,6 +26,7 @@ export const useUserLogin = () => {
             
         } catch (err){
             console.error('Login error:', err.response?.data || err.message)
+            throw err;
         } finally {
             setLoading(false)
         }

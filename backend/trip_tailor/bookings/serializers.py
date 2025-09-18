@@ -5,13 +5,14 @@ class BookingSerializer(serializers.ModelSerializer):
     package_title = serializers.CharField(source="package.title", read_only=True)
     package_image = serializers.ImageField(source="package.main_image", read_only=True)
     package_duration = serializers.CharField(source="package.duration", read_only=True)
+    username = serializers.CharField(source="user.username", read_only=True)
 
     class Meta:
         model = Booking
         fields = [
             "id", "package", "package_title", "package_image", "package_duration",
             "user", "no_of_members", "amount", "date",
-            "payment_method", "payment_status"
+            "payment_method", "payment_status","booking_status","cancelled_at","username"
         ]
         read_only_fields =["amount", "payment_status", "user", "agency"]
 
@@ -28,7 +29,7 @@ class BookingSerializer(serializers.ModelSerializer):
     
 class BookingStatusUpdateSerializer(serializers.ModelSerializer):
     payment_status = serializers.ChoiceField(choices=Booking.PAYMENT_STATUS_CHOICES, required=True)
-    
+
     class Meta:
         model = Booking
         fields = ["payment_status"]

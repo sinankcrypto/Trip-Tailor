@@ -44,3 +44,16 @@ class BookingStatusUpdateView(APIView):
         updated_booking = booking_repo.update_payment_status(booking, serializer.validated_data["payment_status"])
 
         return Response(BookingSerializer(updated_booking).data)
+
+class BookingDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        booking = booking_repo.get_by_id(pk)
+
+        if booking.user != request.user and booking.agency != getattr(request.user, "agency_profile", None):
+            return Response({"detail": "Not authorized"}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = BookingSerializer(booking)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
