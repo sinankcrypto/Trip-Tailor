@@ -4,6 +4,7 @@ import AgencyLayout from '../../../layouts/agency/AgencyLayout'
 import Dashboard from '../pages/Dashboard'
 import RequireAgencyAuth from '../../../auth/RequireAgencyAuth'
 import AgencyProfile from '../pages/AgencyProfile'
+import AgencyBookingsPage from '../../bookings/pages/AgencyBookingsPage'
 
 const AgencyRoutes = () => {
   return (
@@ -12,6 +13,7 @@ const AgencyRoutes = () => {
         <Route path="/agency" element={<AgencyLayout />}>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="profile" element={<AgencyProfile />} />
+          <Route path="bookings" element={<AgencyBookingsPage />} />
         </Route>
       </Route>
     </Routes>

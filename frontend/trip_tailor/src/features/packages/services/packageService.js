@@ -37,3 +37,8 @@ export const getPackages = async () => {
     const res = await apiClient.get("/packages/")
     return res.data
 }
+
+export const getLatestPackages = async () => {
+    const res = await apiClient.get("/packages/latest/")
+    return res.data;
+};

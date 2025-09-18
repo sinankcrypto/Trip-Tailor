@@ -45,6 +45,7 @@ urlpatterns = [
     path('api/agency/', include('agency_app.urls')),
     path('api/user/', include('users.interface.urls')),
     path('api/packages/', include('packages.urls')),
+    path('api/',include('bookings.urls')),
     path("api/auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),       
     path('api/token/refresh-cookie/', RefreshTokenCookieView.as_view(), name='refresh-cookie'),

@@ -4,6 +4,7 @@ import UserRoutes from './features/user/routes/UserRoutes'
 import AgencyRoutes from './features/agency/routes/AgencyRoutes'
 import PackageRoutes from './features/packages/routes/PackageRoutes'
 import { Toaster } from "react-hot-toast"
+import BookingRoutes from './features/bookings/routes/BookingRoutes'
 
 const App = () => {
   return (
@@ -12,6 +13,7 @@ const App = () => {
       <AdminRoutes/>
       <AgencyRoutes/>
       <PackageRoutes/>
+      <BookingRoutes/>
       <Toaster position="top-right" />
     </div>
   )

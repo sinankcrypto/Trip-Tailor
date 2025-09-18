@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useUserLogin } from '../hooks/useUserLogin';
 import { Link } from 'react-router-dom';
 import logo from '../../../../assets/authentication/logo.png'
+import toast from 'react-hot-toast';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -17,17 +18,29 @@ const Login = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const validationErrors = validate();
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  const validationErrors = validate();
 
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
+  if (Object.keys(validationErrors).length > 0) {
+    setErrors(validationErrors);
 
-    login({ username, password });
-  };
+    // Show toast for first validation error
+    const firstError = Object.values(validationErrors)[0];
+    toast.error(firstError);
+
+    return;
+  }
+
+  try {
+    await login({ username, password });
+    toast.success('Logged in successfully!');
+  } catch (err) {
+    // If login API returns error, show toast
+    const message = err?.response?.data?.detail || 'Login failed';
+    toast.error(message);
+  }
+};
 
   return (
 <div className="w-full p-10 bg-white font-[Lexend]">

@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'agency_app',
     'users',
     'packages',
+    'bookings',
 ]
 
 MIDDLEWARE = [
@@ -165,7 +166,6 @@ SIMPLE_JWT = {
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES' : [
         'user_auth.authentication.CookieJWTAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ]
 }
 
