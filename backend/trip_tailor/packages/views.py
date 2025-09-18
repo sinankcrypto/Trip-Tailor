@@ -101,3 +101,9 @@ class PackageListView(APIView):
 
         return Response(serializer.data, status= status.HTTP_200_OK)
     
+class LatestPackagesView(generics.ListAPIView):
+    serializer_class = PackageSerializer
+
+    def get_queryset(self):
+        return package_repo.get_all()[:6]
+    
