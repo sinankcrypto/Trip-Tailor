@@ -5,4 +5,4 @@ class AgencyProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = AgencyProfile
         fields = '__all__'
-        read_only_fields = ['user', 'verified']
+        read_only_fields = ['user', 'status']

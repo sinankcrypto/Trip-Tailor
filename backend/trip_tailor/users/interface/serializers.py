@@ -1,12 +1,31 @@
 from rest_framework import serializers
 
+# class UserProfileSerializer(serializers.Serializer):
+#     id = serializers.IntegerField(read_only = True)
+#     user_id = serializers.IntegerField(read_only = True)
+#     first_name = serializers.CharField(max_length = 100)
+#     last_name = serializers.CharField(max_length = 100)
+#     place = serializers.CharField(max_length = 200, allow_blank = True, required = False)
+#     profile_pic = serializers.URLField(allow_blank = True, required = False)
+
+#     def to_representation(self, instance):
+#         return {
+#             "id": instance.id,
+#             "user_id": instance.user_id,
+#             "first_name": instance.first_name,
+#             "last_name": instance.last_name,
+#             "place": instance.place,
+#             "profile_pic": instance.profile_pic,
+#         }
+    
 class UserProfileSerializer(serializers.Serializer):
-    id = serializers.IntegerField(read_only = True)
-    user_id = serializers.IntegerField(read_only = True)
-    first_name = serializers.CharField(max_length = 100)
-    last_name = serializers.CharField(max_length = 100)
-    place = serializers.CharField(max_length = 200, allow_blank = True, required = False)
-    profile_pic = serializers.URLField(allow_blank = True, required = False)
+    id = serializers.IntegerField(read_only=True)
+    user_id = serializers.IntegerField(read_only=True)
+    first_name = serializers.CharField(max_length=100)
+    last_name = serializers.CharField(max_length=100)
+    place = serializers.CharField(max_length=200, allow_blank=True, required=False)
+    profile_pic = serializers.URLField(allow_blank=True, required=False)
+    phone_number = serializers.CharField(max_length=15, allow_blank=True, required=False)  # ✅ if in profile
 
     def to_representation(self, instance):
         return {
@@ -16,4 +35,6 @@ class UserProfileSerializer(serializers.Serializer):
             "last_name": instance.last_name,
             "place": instance.place,
             "profile_pic": instance.profile_pic,
+            "phone_number": getattr(instance, "phone_number", None),  # ✅ from profile
+            "email": getattr(instance.user, "email", None),  # ✅ from related user
         }

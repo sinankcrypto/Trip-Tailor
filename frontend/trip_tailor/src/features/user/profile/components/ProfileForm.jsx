@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-const ProfileForm = ({ initialValues, onSubmit, submitting }) => {
+const ProfileForm = ({ initialValues, onSubmit, onCancel, submitting }) => {
   const [values, setValues] = useState({
     first_name: initialValues?.first_name || "",
     last_name: initialValues?.last_name || "",
@@ -9,7 +9,19 @@ const ProfileForm = ({ initialValues, onSubmit, submitting }) => {
     profile_pic: null,
   });
 
+  const [preview, setPreview] = useState(initialValues?.profile_pic || null);
   const [errors, setErrors] = useState({});
+
+  // Create preview when a new file is chosen
+  useEffect(() => {
+    if (values.profile_pic && typeof values.profile_pic !== "string") {
+      const objectUrl = URL.createObjectURL(values.profile_pic);
+      setPreview(objectUrl);
+      return () => URL.revokeObjectURL(objectUrl);
+    } else if (typeof values.profile_pic === "string") {
+      setPreview(values.profile_pic);
+    }
+  }, [values.profile_pic]);
 
   const validate = () => {
     const newErrors = {};
@@ -115,22 +127,44 @@ const ProfileForm = ({ initialValues, onSubmit, submitting }) => {
             onChange={(e) =>
               setValues((v) => ({
                 ...v,
-                profile_pic: e.target.files[0], // store File object
+                profile_pic: e.target.files[0],
               }))
             }
             className="border rounded-lg px-3 py-2 border-gray-300 focus:ring-2 focus:ring-green-400"
           />
+          {/* Preview or file name */}
+          {preview && (
+            <div className="mt-2 flex items-center gap-3">
+              <img
+                src={typeof preview === "string" ? preview : URL.createObjectURL(values.profile_pic)}
+                alt="Preview"
+                className="w-16 h-16 rounded-full object-cover border"
+              />
+              <span className="text-sm text-gray-600">
+                {values.profile_pic?.name || "Current Profile Picture"}
+              </span>
+            </div>
+          )}
         </label>
       </div>
 
-      {/* Submit */}
-      <button
-        type="submit"
-        disabled={submitting}
-        className="mt-6 w-full px-4 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md transition disabled:opacity-50"
-      >
-        {submitting ? "Saving..." : "Save Changes"}
-      </button>
+      {/* Actions */}
+      <div className="mt-6 flex justify-between gap-3">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="w-1/2 px-4 py-3 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold transition"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="w-1/2 px-4 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md transition disabled:opacity-50"
+        >
+          {submitting ? "Saving..." : "Save Changes"}
+        </button>
+      </div>
     </form>
   );
 };

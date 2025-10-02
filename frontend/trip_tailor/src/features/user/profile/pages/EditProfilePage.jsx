@@ -13,12 +13,17 @@ const EditProfilePage = () => {
     if (error)   return <p className="p-4 text-red-600">{String(error)}</p>;
     if (!profile) return <p className="p-4">Profile not found.</p>;
 
+    const handleCancel = () => {
+      navigate("/user/profile")
+    }
+
   return (
     <div className="p-4">
       <h1 className="text-2xl font-semibold mb-4">Edit profile</h1>
       <ProfileForm
         initialValues={profile}
         submitting={submitting}
+        onCancel={handleCancel}
         onSubmit={async (values) => {
           try {
             setSubmitting(true);

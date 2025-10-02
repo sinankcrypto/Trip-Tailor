@@ -10,6 +10,13 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    if (
+      originalRequest.url.includes("login") ||
+      originalRequest.url.includes("token/refresh-cookie/")
+    ) {
+      return Promise.reject(error);
+    }
+
     // If unauthorized and not retried yet → try refresh
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;

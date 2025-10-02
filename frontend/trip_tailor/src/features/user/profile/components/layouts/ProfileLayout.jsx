@@ -9,10 +9,12 @@ import {
   Settings as SettingsIcon,
   LogOut
 } from "lucide-react";
+import { useUserLogin } from "../../../auth/hooks/useUserLogin";
+import { useUserLogout } from "../../../auth/hooks/useUserLogout";
 
 const sidebarItems = [
-  { label: "Profile", path: "/profile", icon: User },
-  { label: "Bookings", path: "/profile/bookings", icon: CalendarCheck },
+  { label: "Profile", path: "/user/profile", icon: User },
+  { label: "Bookings", path: "/user/profile/bookings", icon: CalendarCheck },
   { label: "Wishlist", path: "/profile/wishlist", icon: Heart },
   { label: "Payments", path: "/profile/payments", icon: CreditCard },
   { label: "Messages", path: "/profile/messages", icon: MessageCircle },
@@ -20,6 +22,12 @@ const sidebarItems = [
 ];
 
 const ProfileLayout = () => {
+
+  const { logout } = useUserLogout()
+
+  const handleLogout = () => {
+    logout()
+  }
   return (
     <div className="min-h-screen flex flex-col font-jakarta bg-white text-gray-800">
       {/* Navbar */}
@@ -64,7 +72,8 @@ const ProfileLayout = () => {
 
           {/* Logout Button */}
           <div className="pt-4 border-t border-gray-200">
-            <button className="flex items-center gap-3 w-full text-left px-4 py-2 rounded-md text-red-600 hover:bg-red-50 hover:text-red-700 transition font-medium">
+            <button className="flex items-center gap-3 w-full text-left px-4 py-2 rounded-md text-red-600 hover:bg-red-50 hover:text-red-700 transition font-medium"
+            onClick={handleLogout}>
               <LogOut className="w-5 h-5" />
               Logout
             </button>

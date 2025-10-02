@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useGetPackages } from "../hooks/useGetPackages";
 import { useUpdatePackage } from "../hooks/useUpdatePackage";
+import { useGetOnePackage } from "../hooks/useGetOnePackage";
+import toast from "react-hot-toast";
 
 const EditPackagePage = () => {
   const { id } = useParams();
-  const { pkg, loading: fetching, error: fetchError } = useGetPackages(id);
+  const { pkg, loading: fetching, error: fetchError } = useGetOnePackage(id);
   const { handleUpdate, loading: updating, error: updateError } =
     useUpdatePackage();
 
@@ -22,14 +23,13 @@ const EditPackagePage = () => {
 
   useEffect(() => {
     if (pkg) {
-      setForm({
-        title: pkg.title,
-        description: pkg.description,
-        price: pkg.price,
-        duration: pkg.duration,
-        main_image: null,
-        images: [],
-      });
+      setForm((prev) => ({
+        ...prev,
+        title: pkg.title || "",
+        description: pkg.description || "",
+        price: pkg.price || "",
+        duration: pkg.duration || "",
+      }));
     }
   }, [pkg]);
 
@@ -60,22 +60,21 @@ const EditPackagePage = () => {
 
     try {
       await handleUpdate(id, formData);
+      toast.success("Edited package")
       navigate("/agency/my-packages");
     } catch (err) {
       console.error(err);
+      toast.error("Problem occured while editing package")
     }
   };
 
   if (fetching) return <p className="p-6 text-gray-600">Loading package...</p>;
-  if (fetchError)
-    return <p className="p-6 text-red-600">{fetchError}</p>;
+  if (fetchError) return <p className="p-6 text-red-600">{fetchError}</p>;
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-10 font-jakarta">
       <div className="bg-white shadow-lg rounded-xl p-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">
-          Edit Package
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">Edit Package</h1>
 
         <form
           onSubmit={handleSubmit}
@@ -147,6 +146,15 @@ const EditPackagePage = () => {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Main Image
             </label>
+
+            {pkg?.main_image && (
+              <img
+                src={pkg.main_image}
+                alt="Current main"
+                className="h-24 rounded mb-2 object-cover"
+              />
+            )}
+
             <input
               type="file"
               name="main_image"
@@ -161,6 +169,20 @@ const EditPackagePage = () => {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Sub Images (optional, up to 4)
             </label>
+
+            {pkg?.images?.length > 0 && (
+              <div className="flex gap-2 mb-2">
+                {pkg.images.map((img, idx) => (
+                  <img
+                    key={idx}
+                    src={img}
+                    alt={`Sub ${idx}`}
+                    className="h-20 w-20 object-cover rounded"
+                  />
+                ))}
+              </div>
+            )}
+
             <input
               type="file"
               name="images"
@@ -171,8 +193,15 @@ const EditPackagePage = () => {
             />
           </div>
 
-          {/* Submit */}
-          <div className="flex justify-end">
+          {/* Buttons */}
+          <div className="flex justify-end gap-4">
+            <button
+              type="button"
+              onClick={() => navigate("/agency/my-packages")}
+              className="px-6 py-2 bg-gray-300 text-gray-800 rounded-lg shadow hover:bg-gray-400 transition"
+            >
+              Cancel
+            </button>
             <button
               type="submit"
               disabled={updating}

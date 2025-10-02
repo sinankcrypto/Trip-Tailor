@@ -2,7 +2,8 @@ import React from 'react'
 
 const ProfileCard = ({ profile, onEdit }) => {
   return (
-    <div className="max-w-xl p-4 rounded-xl shadow bg-white">
+    <div className="max-w-xl p-4 rounded-xl shadow bg-white font-[Lexend]">
+      {/* Profile header */}
       <div className="flex items-center gap-4">
         {profile.profile_pic ? (
           <img
@@ -21,9 +22,27 @@ const ProfileCard = ({ profile, onEdit }) => {
         </div>
       </div>
 
+      {/* Contact Info */}
+      <div className="mt-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">
+          Contact Information
+        </h3>
+        <div className="text-gray-700 space-y-1">
+          <p>
+            <span className="font-medium">📞 Phone:</span>{" "}
+            {profile.phone_number || "—"}
+          </p>
+          <p>
+            <span className="font-medium">✉️ Email:</span>{" "}
+            {profile.email || "—"}
+          </p>
+        </div>
+      </div>
+
+      {/* Edit button */}
       <button
         onClick={onEdit}
-        className="mt-4 px-4 py-2 rounded-lg bg-black text-white"
+        className="mt-6 px-4 py-2 rounded-lg bg-black text-white hover:bg-gray-800"
       >
         Edit
       </button>

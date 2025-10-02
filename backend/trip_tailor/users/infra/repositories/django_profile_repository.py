@@ -37,7 +37,7 @@ class DjangoProfileRepository(AbstractProfileRepository):
         return profile
     
     def get_profile_by_user_id(self, user_id):
-        return UserProfile.objects.get(user__id = user_id)
+        return UserProfile.objects.select_related("user").get(user__id=user_id)
     
     def to_entity(self, obj: UserProfile) -> UserProfileEntity:
         return UserProfileEntity(

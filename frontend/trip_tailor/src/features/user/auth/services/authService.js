@@ -1,12 +1,9 @@
 import apiClient from "../../../../api/apiClient";
 
 export const signupUser = async (formData) => {
-    try{
-        const response = await apiClient.post('/user/signup/', formData)
-        return response.data
-    } catch (error){
-        throw error;
-    }   
+    const response = await apiClient.post('/user/signup/', formData)
+    return response.data
+      
 }
 
 export const loginUser = async (credentials) => {

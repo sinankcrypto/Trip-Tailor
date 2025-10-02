@@ -9,6 +9,8 @@ class PackageImageSerializer(serializers.ModelSerializer):
 class PackageSerializer(serializers.ModelSerializer):
     images = PackageImageSerializer(many = True, read_only = True)
     main_image = serializers.ImageField(write_only=True, required=False)
+    agency_name = serializers.CharField(source="agency.agency_name", read_only=True)
+
 
     class Meta:
         model = Package

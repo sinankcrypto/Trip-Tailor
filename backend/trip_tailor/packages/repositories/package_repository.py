@@ -45,7 +45,7 @@ class PackageRepository:
 
         return package
     
-    def get_all(self):
+    def get_all_listed(self):
         return Package.objects.filter(is_listed = True, is_deleted = False)
     
     def get_by_id(self,pk):
@@ -65,3 +65,6 @@ class PackageRepository:
         package.save()
 
         return package
+    
+    def get_all(self):
+        return Package.objects.all().select_related("agency")

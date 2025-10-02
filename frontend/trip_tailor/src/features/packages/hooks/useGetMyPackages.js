@@ -13,7 +13,12 @@ export const useGetMyPackages = () => {
                 const data = await getMyPackages();
                 setPackages(data);
             } catch (err) {
+                if (err.response?.status === 403) {
+                setError("Please wait till your profile is verified to continue services.");
+                }else{
                 setError(err.response?.data || "Failed to fetch packages")
+                }
+
             } finally {
                 setLoading(false)
             }
@@ -22,5 +27,5 @@ export const useGetMyPackages = () => {
         fetchPackages()
     },[]);
 
-    return { packages, loading, error}
+    return { packages, setPackages, loading, error}
 }

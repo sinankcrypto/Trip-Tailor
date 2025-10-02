@@ -16,7 +16,9 @@ export const useUserSignup = () => {
                 }
             })
         } catch (err) {
-            console.error('Signup error:', err.response?.message )
+            console.error('Sign Up error:', err.response?.data || err.message)
+            throw err
+
         }
     }
 

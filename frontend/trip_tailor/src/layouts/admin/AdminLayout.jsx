@@ -7,6 +7,7 @@ const SidebarItems = [
   { name : 'Dashboard', path : '/admin-panel/dashboard'},
   { name : 'Users', path: '/admin-panel/users'},
   { name : 'Agencies', path: '/admin-panel/agencies'},
+  { name : 'Packages', path: '/admin-panel/packages'},
   { name : 'Bookings', path: '/admin-panel/bookings' },
   { name : 'Withdrawals', path: '/admin-panel/withdrawals'},
 ];

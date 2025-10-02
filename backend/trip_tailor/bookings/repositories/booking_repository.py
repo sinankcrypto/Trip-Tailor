@@ -24,3 +24,7 @@ class BookingRepository:
     
     def get_by_id_and_user(self, booking_id, user):
         return get_object_or_404(Booking, id=booking_id, user=user)
+    
+    def get_all_bookings(self):
+        return Booking.objects.select_related('user', 'agency', 'package').all().order_by('-created_at')
+    

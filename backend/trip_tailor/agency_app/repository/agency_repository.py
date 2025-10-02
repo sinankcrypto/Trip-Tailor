@@ -1,10 +1,12 @@
-from user_auth.domain.models import CustomUser
 from agency_app.models import AgencyProfile
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class AgencyRepository:
     @staticmethod
     def get_all_agencies_with_profiles():
-        return CustomUser.objects.filter(is_agency= True, is_deleted = False).select_related('agency_profile')
+        return User.objects.filter(is_agency= True, is_deleted = False).select_related('agency_profile').order_by("-created_at")
     
     @staticmethod
     def get_profile(user):
@@ -19,4 +21,8 @@ class AgencyRepository:
         profile.save()
 
         return profile
+    
+    @staticmethod
+    def get_agency_by_id(pk):
+        return User.objects.get(pk = pk, is_agency = True)
     

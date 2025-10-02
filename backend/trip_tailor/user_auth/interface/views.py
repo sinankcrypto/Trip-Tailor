@@ -19,7 +19,6 @@ class UserLoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        role = request.data.get('role')
         serializer = UserLoginSerializer(data = request.data)
         
         if serializer.is_valid():
@@ -31,11 +30,6 @@ class UserLoginView(APIView):
             if not user or user.is_superuser:
                 return Response({'detail': 'Invalid Credentails'}, status= status.HTTP_401_UNAUTHORIZED)
             
-            if role == 'agency' and not user.is_agency:
-                return Response({'detail': 'Not an agency account'}, status= status.HTTP_403_FORBIDDEN)
-            
-            if role == 'user' and user.is_agency:
-                return Response({'detial': 'Not a user account'}, status= status.HTTP_403_FORBIDDEN)
 
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
@@ -85,7 +79,7 @@ class UserSignupView(APIView):
 
             send_mail(
                 subject="Your Trip Tailor OTP",
-                message=f"Your OTP is: {otp}",
+                message=f"Your OTP is: {otp} Please verify to login to Trip Tailor",
                 from_email="triptailor.boss@gmail.com",
                 recipient_list=[user.email],
                 fail_silently=False,
@@ -132,10 +126,12 @@ class LogoutView(APIView):
 
         response = Response({'messsage': 'Logged out successfully'})
         response.delete_cookie(
-        key='access_token',
-        samesite='Lax',
-        secure=False,
-        path='/'
+            key='access_token',
+            path='/'
+        )
+        response.delete_cookie(
+            key='refresh_token',
+            path='/'
         )
         
         return response

@@ -1,24 +1,35 @@
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { getAllAgencies } from "../services/agencyService";
 
-export const useFetchAgencies = () => {
-    const [agencies, setAgencies] = useState([])
-    const [loading, setLoading] = useState(true)
+export const useFetchAgencies = (initialParams = { page: 1, page_size: 10 }) => {
+  const [agencies, setAgencies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [params, setParams] = useState(initialParams);
+  const [pagination, setPagination] = useState({
+    count: 0,
+    next: null,
+    previous: null,
+  });
 
-    useEffect(() => {
-        const fetchAgencies = async () => {
-            try{
-                const data = await getAllAgencies();
-                setAgencies(data)
-                console.log(data)
-            } catch (err) {
-                console.log('failed to fetch users:', err)
-            } finally {
-                setLoading(false)
-            }
-        }
-        fetchAgencies();
-    },[])
+  useEffect(() => {
+    const fetchAgencies = async () => {
+      setLoading(true);
+      try {
+        const data = await getAllAgencies(params);
+        setAgencies(data.results || []);
+        setPagination({
+          count: data.count,
+          next: data.next,
+          previous: data.previous,
+        });
+      } catch (err) {
+        console.error("failed to fetch agencies:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAgencies();
+  }, [params]);
 
-    return { agencies, loading}
-}
+  return { agencies, loading, pagination, setParams, params };
+};

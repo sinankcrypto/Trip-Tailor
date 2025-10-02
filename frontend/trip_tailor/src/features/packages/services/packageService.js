@@ -40,5 +40,11 @@ export const getPackages = async () => {
 
 export const getLatestPackages = async () => {
     const res = await apiClient.get("/packages/latest/")
-    return res.data;
+    return res.data.results;
+};
+
+export const getAllPackages = async (filters) => {
+  const params = new URLSearchParams(filters).toString();
+  const response = await apiClient.get(`/packages/admin-panel/packages/?${params}`);
+  return response.data;
 };

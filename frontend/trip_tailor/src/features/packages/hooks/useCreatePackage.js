@@ -9,12 +9,10 @@ export const useCreatePackage = () => {
         setLoading(true)
         setError(null)
         try {
-            const data = createPackage(FormData);
-            toast.success("Package created successfully!");
+            const data = await createPackage(FormData);
             return data;
         } catch (err) {
             setError(err.response?.data || "Failed to create package")
-            
             throw err;
         } finally {
             setLoading(false);

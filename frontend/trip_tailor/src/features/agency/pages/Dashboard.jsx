@@ -14,23 +14,22 @@ const data = [
   { name: 'Sat', bookings: 6 },
   { name: 'Sun', bookings: 9 },
 ];
-const Dashboard = () => {
 
+const Dashboard = () => {
   const [status, setStatus] = useState(null)
 
   useEffect(() => {
     const fetchStatus = async () => {
-      try{
+      try {
         const res = await apiClient.get('agency/profile/status');
         setStatus(res.data);
-
       } catch (err) {
         console.error('Error fetching profile status:', err);
       }
     }
 
-    fetchStatus()
-  },[])
+    fetchStatus();
+  }, [])
 
   if (!status) return <p>Loading...</p>;
 
@@ -42,14 +41,33 @@ const Dashboard = () => {
     );
   }
 
-  if (!status.is_verified) {
+  // Handle rejected status
+  if (status.status === "rejected") {
+    return (
+      <div className="text-center text-red-600 font-semibold p-6 space-y-3">
+        <p>Your profile has been <span className="font-bold">rejected</span>.</p>
+        {status.rejection_reason && (
+          <p className="italic text-red-500">Reason: {status.rejection_reason}</p>
+        )}
+        <p className="text-gray-700">
+          Please edit the fields with correct information to get verified.
+        </p>
+      </div>
+    );
+  }
+
+  // Handle pending (not verified yet)
+  if (status.status === "pending") {
     return (
       <div className="text-center text-yellow-600 font-semibold p-6">
         Your profile is under review. Please wait for admin approval.
       </div>
     );
   }
-  return (
+
+  // If verified -> show dashboard
+  if (status.is_verified) {
+    return (
       <div className="p-6 bg-gray-50 min-h-screen font-[Lexend]">
         <h2 className="text-2xl font-semibold text-gray-800 mb-6">Agency Dashboard</h2>
 
@@ -72,7 +90,10 @@ const Dashboard = () => {
           </ResponsiveContainer>
         </div>
       </div>
-  )
+    );
+  }
+
+  return null;
 }
 
 export default Dashboard

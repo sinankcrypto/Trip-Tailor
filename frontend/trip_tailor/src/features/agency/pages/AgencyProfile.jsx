@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useProfile } from '../hooks/useProfile'
+import toast from 'react-hot-toast'
 
 const AgencyProfile = () => {
     const { profile, loading, updateProfile} = useProfile()
@@ -12,6 +13,7 @@ const AgencyProfile = () => {
       profile_pic: null,
       license_document: null,
     });
+    const [errors, setErrors] = useState({})
 
     useEffect(() => {
       console.log(profile)
@@ -24,14 +26,47 @@ const AgencyProfile = () => {
         license_document: null,
       });
       setEditing(true)
+      setErrors({})
+
     }
 
     const handleChange = (e) => {
       setForm({...form, [e.target.name]: e.target.value})
+      setErrors({ ...errors, [e.target.name]: '' })
     }
+
+    const validate = () => {
+      const newErrors = {}
+
+      // Agency name: cannot be only numbers, must contain letters
+      if (!form.agency_name || !/[a-zA-Z]/.test(form.agency_name)) {
+        newErrors.agency_name = 'Agency name must contain letters'
+      }
+
+      // Address: must contain letters (simple check)
+      if (!form.address || !/[a-zA-Z]/.test(form.address)) {
+        newErrors.address = 'Address must contain letters'
+      }
+
+      // Description: must contain letters
+      if (!form.description || !/[a-zA-Z]/.test(form.description)) {
+        newErrors.description = 'Description must contain letters'
+      }
+
+      // Phone number: only digits, length 10
+      if (!/^\d{10}$/.test(form.phone_number)) {
+        newErrors.phone_number = 'Phone number must be 10 digits'
+      }
+
+      setErrors(newErrors)
+      return Object.keys(newErrors).length === 0
+  }
 
     const handleSubmit = async (e) =>{
       e.preventDefault()
+
+      if (!validate()) return
+
       const formData = new FormData();
       formData.append('agency_name', form.agency_name);
       formData.append('phone_number', form.phone_number);
@@ -40,8 +75,13 @@ const AgencyProfile = () => {
 
       if (form.profile_pic) formData.append('profile_pic', form.profile_pic);
       if (form.license_document) formData.append('license_document', form.license_document);
-      const success = await updateProfile(form)
-      if (success) setEditing(false)
+      try{
+        await updateProfile(form)
+        toast.success("Profile saved Succesfully")
+        setEditing(false)
+      } catch (err) {
+        toast.error(err?.response?.data || "Error saving profile")
+      }
     }
 
     if (loading) return <div className="p-6">Loading...</div>   
@@ -52,89 +92,93 @@ const AgencyProfile = () => {
     <h2 className="text-2xl font-bold text-green-700 mb-6">Agency Profile</h2>
 
     {editing ? (
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block mb-1 text-sm font-medium text-gray-700">Agency Name</label>
-          <input
-            type="text"
-            name="agency_name"
-            value={form.agency_name}
-            onChange={handleChange}
-            className="w-full border border-gray-300 p-3 rounded-md"
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1 text-sm font-medium text-gray-700">Address</label>
-          <textarea
-            name="address"
-            value={form.address}
-            onChange={handleChange}
-            className="w-full border border-gray-300 p-3 rounded-md"
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1 text-sm font-medium text-gray-700">Phone Number</label>
-          <input
-            type="text"
-            name="phone_number"
-            value={form.phone_number}
-            onChange={handleChange}
-            className="w-full border border-gray-300 p-3 rounded-md"
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1 text-sm font-medium text-gray-700">Description</label>
-          <textarea
-            name="description"
-            value={form.description}
-            onChange={handleChange}
-            className="w-full border border-gray-300 p-3 rounded-md"
-          />
-        </div>
-
-        {/* Profile Picture */}
-        {profile.profile_pic && (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Agency Name */}
           <div>
-            <p className="text-sm text-gray-600 mb-1">Current Profile Picture:</p>
-            <img src={profile.profile_pic} alt="Profile" className="h-24 rounded-md border" />
+            <label className="block mb-1 text-sm font-medium text-gray-700">Agency Name</label>
+            <input
+              type="text"
+              name="agency_name"
+              value={form.agency_name}
+              onChange={handleChange}
+              className="w-full border border-gray-300 p-3 rounded-md"
+            />
+            {errors.agency_name && (
+              <p className="text-red-500 text-sm mt-1">{errors.agency_name}</p>
+            )}
           </div>
-        )}
-        <label className="block mb-1 text-sm font-medium text-gray-700">Profile Picture</label>
-        <input
-          type="file"
-          name="profile_pic"
-          accept="image/*"
-          onChange={(e) => setForm({ ...form, profile_pic: e.target.files[0] })}
-          className="w-full border p-2 rounded"
-        />
 
-        {/* License Document */}
-        {profile.license_document && (
+          {/* Address */}
           <div>
-            <p className="text-sm text-gray-600 mb-1 mt-4">Current License Document:</p>
-            <img src={profile.license_document} alt="License" className="h-24 rounded-md border" />
+            <label className="block mb-1 text-sm font-medium text-gray-700">Address</label>
+            <textarea
+              name="address"
+              value={form.address}
+              onChange={handleChange}
+              className="w-full border border-gray-300 p-3 rounded-md"
+            />
+            {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
           </div>
-        )}
-        <label className="block mb-1 text-sm font-medium text-gray-700">License Document</label>
-        <input
-          type="file"
-          name="license_document"
-          accept="image/*"
-          onChange={(e) => setForm({ ...form, license_document: e.target.files[0] })}
-          className="w-full border p-2 rounded"
-        />
 
-        <button
-          type="submit"
-          className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md font-medium"
-        >
-          Save Profile
-        </button>
-      </form>
-    ) : (
+          {/* Phone Number */}
+          <div>
+            <label className="block mb-1 text-sm font-medium text-gray-700">Phone Number</label>
+            <input
+              type="text"
+              name="phone_number"
+              value={form.phone_number}
+              onChange={handleChange}
+              className="w-full border border-gray-300 p-3 rounded-md"
+            />
+            {errors.phone_number && (
+              <p className="text-red-500 text-sm mt-1">{errors.phone_number}</p>
+            )}
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block mb-1 text-sm font-medium text-gray-700">Description</label>
+            <textarea
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+              className="w-full border border-gray-300 p-3 rounded-md"
+            />
+            {errors.description && (
+              <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+            )}
+          </div>
+
+          {/* File Inputs */}
+          <div>
+            <label className="block mb-1 text-sm font-medium text-gray-700">Profile Picture</label>
+            <input
+              type="file"
+              name="profile_pic"
+              accept="image/*"
+              onChange={(e) => setForm({ ...form, profile_pic: e.target.files[0] })}
+              className="w-full border p-2 rounded"
+            />
+          </div>
+          <div>
+            <label className="block mb-1 text-sm font-medium text-gray-700">License Document</label>
+            <input
+              type="file"
+              name="license_document"
+              accept="image/*"
+              onChange={(e) => setForm({ ...form, license_document: e.target.files[0] })}
+              className="w-full border p-2 rounded"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md font-medium"
+          >
+            Save Profile
+          </button>
+        </form>
+      ) : (
       <div className="space-y-4">
         <div>
           <strong className="text-gray-700">Agency Name:</strong> {profile.agency_name}
@@ -162,7 +206,7 @@ const AgencyProfile = () => {
         )}
         <div>
           <strong className="text-gray-700">Verified:</strong>{' '}
-          {profile.verified ? (
+          {profile.status == "verified" ? (
             <span className="text-green-600 font-semibold">Yes</span>
           ) : (
             <span className="text-red-500 font-semibold">No</span>
