@@ -42,29 +42,39 @@ class OTPVerifySerializer(serializers.Serializer):
     otp = serializers.CharField(max_length= 6)
 
 class CustomUserSerializer(serializers.ModelSerializer):
-    verified = serializers.SerializerMethodField()
+    agency_status = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'email', 'is_active','is_agency', 'verified']
+        fields = [
+            'id',
+            'username',
+            'email',
+            'is_active',
+            'is_agency',
+            'agency_status',
+        ]
 
-    def get_verified(self, obj):
+    def get_agency_status(self, obj):
         if obj.is_agency:
-            try:
-                return obj.agency_profile.verified
-            except AgencyProfile.DoesNotExist:
-                return False
+            return getattr(obj.agency_profile, "status", "pending")
         return None
 
-class AgencyListSerializer(serializers.Serializer):
-    is_verified = serializers.SerializerMethodField()
+class AgencyListSerializer(serializers.ModelSerializer):
+    agency_status = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'email', 'phone_number','is_verified']
-    
-    def get_is_verified(self, obj):
+        fields = [
+            'id',
+            'username',
+            'email',
+            'phone_number',
+            'agency_status',
+        ]
+
+    def get_agency_status(self, obj):
         try:
-            return obj.agency_profile.is_verified
+            return obj.agency_profile.status
         except AgencyProfile.DoesNotExist:
-            return False
+            return "pending"

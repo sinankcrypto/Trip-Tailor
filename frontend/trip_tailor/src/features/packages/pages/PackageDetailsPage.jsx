@@ -4,7 +4,9 @@ import { useGetOnePackage } from "../hooks/useGetOnePackage";
 const PackageDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate(); // 👈 add this
-  const { packagedata, loading, error } = useGetOnePackage(id);
+  const { pkg, loading, error } = useGetOnePackage(id);
+
+  const packagedata = pkg
 
   if (loading) {
     return (

@@ -19,3 +19,13 @@ export const getBookingById = async (id) => {
     const res = await apiClient.get(`/bookings/${id}`);
     return res.data;
 }
+
+export const getUserBookings = async () => {
+  const response = await apiClient.get("/bookings/user/");
+  return response.data;
+};
+
+export const getAllBookings = async () => {
+  const response = await apiClient.get("admin-panel/bookings/")
+  return response.data;
+}

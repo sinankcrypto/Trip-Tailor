@@ -1,4 +1,6 @@
 from django.db import IntegrityError
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 
 from rest_framework import status, generics
 from rest_framework.permissions import IsAuthenticated
@@ -8,7 +10,8 @@ from rest_framework.exceptions import ValidationError
 
 from .serializers import PackageSerializer
 from .repositories.package_repository import PackageRepository
-
+from .filters import PackageFilter
+from agency_app.permissions import IsVerifiedAgency
 
 
 # Create your views here.
@@ -35,7 +38,7 @@ class PackageUpdateView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return package_repo.get_all()
+        return package_repo.get_all_listed()
     
     def perform_update(self, serializer):
         package = self.get_object()
@@ -48,7 +51,7 @@ class PackageUpdateView(generics.UpdateAPIView):
         serializer.instance = package
 
 class AgencyPackageListView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsVerifiedAgency]
 
     def get(self, request):
         try:
@@ -90,13 +93,13 @@ class PackageDetailView(generics.RetrieveAPIView):
     serializer_class = PackageSerializer
 
     def get_queryset(self):
-        return package_repo.get_all()
+        return package_repo.get_all_listed()
     
 # User Side
 
 class PackageListView(APIView):
     def get(self, request):
-        packages = package_repo.get_all()
+        packages = package_repo.get_all_listed()
         serializer = PackageSerializer(packages, many=True)
 
         return Response(serializer.data, status= status.HTTP_200_OK)
@@ -105,5 +108,14 @@ class LatestPackagesView(generics.ListAPIView):
     serializer_class = PackageSerializer
 
     def get_queryset(self):
-        return package_repo.get_all()[:6]
-    
+        return package_repo.get_all_listed()[:6]
+
+#Admin side
+
+class AdminPackageListView(generics.ListAPIView):
+    queryset = package_repo.get_all()
+    serializer_class = PackageSerializer
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_class =  PackageFilter
+    ordering_fields = ["price", "duration", "created_at"]
+    ordering = ["-created_at"]

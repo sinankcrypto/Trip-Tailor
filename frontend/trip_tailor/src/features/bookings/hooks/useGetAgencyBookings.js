@@ -11,10 +11,14 @@ export const useGetAgencyBookings = () => {
     setLoading(true);
     try {
       const data = await getAgencyBookings();
-      setBookings(data);
+      setBookings(data.results);
       setError(null);
     } catch (err) {
-      setError("Failed to load agency bookings");
+      if (err.response?.status === 403) {
+          setError("Please wait till your profile is verified to continue services.");
+        } else {
+          setError("Failed to load bookings.");
+        }
     } finally {
       setLoading(false);
     }

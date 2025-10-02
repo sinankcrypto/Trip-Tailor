@@ -25,10 +25,8 @@ export const useProfile = () => {
                 },
             });
             setProfile(res.data)
-            return true
         } catch (err) {
-            console.error('Profile update failed', err)
-            return false
+            throw err
         }
     }
 

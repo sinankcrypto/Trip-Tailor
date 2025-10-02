@@ -20,8 +20,8 @@ class AgencyProfileStatusView(APIView):
         if not hasattr(user, 'agency_profile'):
             return Response({
                 'profile_exists': False,
-                'is_verified': False,
-                'message': 'profile not created'
+                'status': None,
+                'message': 'Profile not created'
             })
         
         profile = user.agency_profile
@@ -30,11 +30,19 @@ class AgencyProfileStatusView(APIView):
 
         is_complete = all(required_fields)
 
-        return Response({
+
+
+        response_data = {
             'profile_exists': True,
-            'is_verified': profile.verified,
-            'is_complete': is_complete
-        })
+            'status': profile.status,
+            'is_complete': is_complete,
+            'is_verified': profile.status == profile.Status.VERIFIED
+        }
+
+        if profile.status == profile.Status.REJECTED:
+            response_data['rejection_reason'] = profile.rejection_reason
+        
+        return Response(response_data)
 
 
 class AgencyProfileView(APIView):
@@ -46,13 +54,17 @@ class AgencyProfileView(APIView):
         return Response(serializer.data)
     
     def put(self, request):
-        print("put working")
         profile = AgencyRepository.get_profile(request.user)
         serializer = AgencyProfileSerializer(profile, data= request.data, partial= True)
 
         if serializer.is_valid():
             serializer.save() 
+
+            profile.status = AgencyProfile.Status.PENDING
+            profile.save(update_fields=['status'])
+
             return Response(serializer.data)
+        
         return Response(serializer.errors, status=400)  
     
 class LogoutView(APIView):

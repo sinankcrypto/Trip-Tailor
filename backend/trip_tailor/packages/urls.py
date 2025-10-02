@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import ( AgencyPackageListView, PackageCreateView, PackageToggleListView, PackageSoftDeleteView, 
-                    PackageUpdateView, PackageDetailView, PackageListView, LatestPackagesView)
+                    PackageUpdateView, PackageDetailView, PackageListView, LatestPackagesView, AdminPackageListView)
                     
 
 urlpatterns = [
@@ -12,5 +12,7 @@ urlpatterns = [
     path('<int:pk>/delete', PackageSoftDeleteView.as_view(), name="delete-package"),
     path("", PackageListView.as_view(), name="package-list"),
     path("latest/", LatestPackagesView.as_view(), name="latest-packages"),
+
+    path("admin-panel/packages/", AdminPackageListView.as_view(), name="admin-packages"),
     
 ]

@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, generics
 from admin_app.interface.serializers import AdminLoginSerializer
 from user_auth.repository.user_repository import UserRepository
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -8,6 +8,13 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from user_auth.domain.models import CustomUser
 from user_auth.interface.views import CustomUserSerializer
 from agency_app.repository.agency_repository import AgencyRepository
+from core.pagination import StandardResultsSetPagination
+
+from agency_app.models import AgencyProfile
+
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 # Create your views here.
@@ -77,30 +84,42 @@ class AdminLogoutView(APIView):
         )
         return response
     
-class UserListView(APIView):
+# class UserListView(APIView):
+#     permission_classes = [IsAdminUser]
+
+#     def get(self, request):
+#         users = CustomUser.objects.filter(is_superuser= False, is_agency=False)
+#         serializer = CustomUserSerializer(users, many = True)
+
+#         return Response(serializer.data)
+
+class UserListView(generics.ListAPIView):
+    queryset = UserRepository.get_all_users()
+    serializer_class = CustomUserSerializer
     permission_classes = [IsAdminUser]
-
-    def get(self, request):
-        users = CustomUser.objects.filter(is_superuser= False, is_agency=False)
-        serializer = CustomUserSerializer(users, many = True)
-
-        return Response(serializer.data)
+    pagination_class = StandardResultsSetPagination
     
-class AgencyListView(APIView):
+# class AgencyListView(APIView):
+#     permission_classes = [IsAdminUser]
+
+#     def get(self, request):
+#         agencies = AgencyRepository.get_all_agencies_with_profiles()
+#         serializer = CustomUserSerializer(agencies, many= True)
+
+#         return Response(serializer.data)
+
+class AgencyListView(generics.ListAPIView):
+    queryset = AgencyRepository.get_all_agencies_with_profiles()
+    serializer_class = CustomUserSerializer
     permission_classes = [IsAdminUser]
-
-    def get(self, request):
-        agencies = AgencyRepository.get_all_agencies_with_profiles()
-        serializer = CustomUserSerializer(agencies, many= True)
-
-        return Response(serializer.data)
+    pagination_class = StandardResultsSetPagination
     
 class AgencyDetailsView(APIView):
     permission_classes= [IsAdminUser]
     
     def get(self, request, pk):
         try:
-            user = CustomUser.objects.get(pk=pk, is_agency=True)
+            user = AgencyRepository.get_agency_by_id(pk=pk)
             profile = user.agency_profile
 
             data = CustomUserSerializer(user).data
@@ -121,7 +140,8 @@ class AgencyDetailsView(APIView):
                 ), 
                 'address': profile.address,
                 'description': profile.description,
-                'is_verified': profile.verified
+                'status': profile.status,
+                'rejection_reason': profile.rejection_reason,
             })
 
             return Response(data)
@@ -135,14 +155,16 @@ class AgencyVerifyView(APIView):
 
     def post(self, request, pk):
         try:
-            user = CustomUser.objects.get(pk=pk, is_agency=True)
+            user = AgencyRepository.get_agency_by_id(pk=pk)
             profile = user.agency_profile
 
             if not profile:
                 return Response({'detail': 'Agency profile not found'}, status=status.HTTP_404_NOT_FOUND)
 
-            if profile.verified:
+            if profile.status == AgencyProfile.Status.VERIFIED:
                 return Response({'detail': 'Agency already verified'}, status=status.HTTP_400_BAD_REQUEST)
+            if profile.status == AgencyProfile.Status.REJECTED:
+                return Response({'detail': 'Agency already rejected'}, status=status.HTTP_400_BAD_REQUEST)
             
             required_fields = [
                 profile.agency_name,
@@ -155,10 +177,36 @@ class AgencyVerifyView(APIView):
             if not all(required_fields):
                 return Response({'detail': 'Incomplete profile, cannot verify'}, status=status.HTTP_400_BAD_REQUEST)
 
-            profile.verified = True
+            profile.status = AgencyProfile.Status.VERIFIED
+            profile.rejection_reason = None
             profile.save()
 
             return Response({'message': 'Agency successfully verified'}, status=status.HTTP_200_OK)
 
         except CustomUser.DoesNotExist:
+            return Response({'detail': 'Agency not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+class AgencyRejectView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, pk):
+        try:
+            user = AgencyRepository.get_agency_by_id(pk = pk)
+            profile = user.agency_profile
+
+            if profile.status == AgencyProfile.Status.VERIFIED:
+                return Response({'detail': 'Cannot reject a verified agency'}, status= status.HTTP_400_BAD_REQUEST)
+            
+            if profile.status == AgencyProfile.Status.REJECTED:
+                return Response({'detail': 'Agency already rejected'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            reason = request.data.get('reason', '').strip() or None
+
+            profile.status = AgencyProfile.Status.REJECTED
+            profile.rejection_reason = reason
+            profile.save()
+
+            return Response({'message': 'Agency rejected', 'reason': reason}, status=status.HTTP_200_OK)
+        
+        except User.DoesNotExist:
             return Response({'detail': 'Agency not found'}, status=status.HTTP_404_NOT_FOUND)

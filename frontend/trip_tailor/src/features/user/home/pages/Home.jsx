@@ -6,6 +6,7 @@ import aboutImg1 from "../../../../assets/Home/aboutImg1.png";
 import aboutImg2 from "../../../../assets/Home/aboutImg2.png";
 import { FiUser } from "react-icons/fi";
 import { useGetLatestPackages } from "../../../packages/hooks/useGetLatestPackages";
+import { useUserLogout } from "../../auth/hooks/useUserLogout";
 
 
 const Home = () => {
@@ -14,11 +15,10 @@ const Home = () => {
   const [showDropdown, setShowDropdown] = useState(false);
 
   const { packages, loading, error } = useGetLatestPackages();
+  const { logout } = useUserLogout()
 
   const handleLogout = () => {
-    clearUser();
-    setShowDropdown(false);
-    navigate("/user/login");
+    logout()
   };
 
   return (

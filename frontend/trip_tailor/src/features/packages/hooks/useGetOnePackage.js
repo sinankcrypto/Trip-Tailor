@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { getPackage } from "../services/packageService";
 
 export const useGetOnePackage = (id) => {
-    const [packagedata, setPackage] = useState(null)
+    const [pkg, setPackage] = useState(null)
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -23,5 +23,5 @@ export const useGetOnePackage = (id) => {
     return () => (cancelled = true);
     }, []);
 
-    return { packagedata, loading, error };
+    return { pkg, loading, error };
 }

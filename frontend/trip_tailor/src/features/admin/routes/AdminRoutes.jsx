@@ -6,6 +6,8 @@ import RequireAdminAuth from '../../../auth/RequireAdminAuth';
 import Users from '../pages/Users';
 import Agencies from '../pages/Agencies';
 import AgencyDetials from '../pages/AgencyDetials';
+import AdminBookingsPage from '../../bookings/pages/AdminBookingsPage';
+import AdminPackagesPage from '../../packages/pages/AdminPackages';
 
 const AdminRoutes = () => {
   return (
@@ -25,6 +27,8 @@ const AdminRoutes = () => {
         <Route path="users" element={<Users/> }/>
         <Route path="agencies" element={<Agencies/>} />
         <Route path="agencies/:id" element={<AgencyDetials/>} />
+        <Route path="bookings" element= {<AdminBookingsPage/>} />
+        <Route path="packages" element= {<AdminPackagesPage/>} />
       </Route>
     </Routes>
     

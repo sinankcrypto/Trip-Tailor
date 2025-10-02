@@ -1,6 +1,7 @@
 from django.urls import path
 from admin_app.interface.views import (
-    AdminLoginView, AdminProfileView, AdminLogoutView, UserListView, AgencyListView, AgencyDetailsView, AgencyVerifyView
+    AdminLoginView, AdminProfileView, AdminLogoutView, UserListView, AgencyListView, AgencyDetailsView, 
+    AgencyVerifyView, AgencyRejectView
 ) 
 
 urlpatterns = [
@@ -11,4 +12,5 @@ urlpatterns = [
     path('agencies/',AgencyListView.as_view(), name='admin-agency-list'),
     path('agencies/<int:pk>/', AgencyDetailsView.as_view()),
     path('agencies/<int:pk>/verify/', AgencyVerifyView.as_view()),
+    path('agencies/<int:pk>/reject/', AgencyRejectView.as_view()),
 ]

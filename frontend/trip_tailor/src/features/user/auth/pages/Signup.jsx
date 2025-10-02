@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useUserSignup } from '../hooks/useUserSignup';
 import { Link } from 'react-router-dom';
 import logo from '../../../../assets/authentication/logo.png'
+import toast from 'react-hot-toast';
 
 const Signup = () => {
   const [form, setForm] = useState({
@@ -51,15 +52,35 @@ const Signup = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate()
 
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      return;
+      const firstError = Object.values(validationErrors)[0];
+      toast.error(firstError);
+      retur
     }
-    signup({...form, role});
+    try{
+      await signup({...form, role});
+      toast.success("Sign up Succesfully, Please verify the email")
+    } catch (err) {
+      const errorData = err?.response?.data;
+
+      let message = "Signup failed";
+
+      if (typeof errorData === "object" && errorData !== null) {
+        // pick the first error from the object
+        const firstKey = Object.keys(errorData)[0];
+        message = errorData[firstKey]?.[0] || message;
+      } else if (typeof errorData === "string") {
+        message = errorData;
+      }
+
+      toast.error(message);
+    }
+    
   };
 
   return (
