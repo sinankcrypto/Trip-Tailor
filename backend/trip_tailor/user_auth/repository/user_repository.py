@@ -16,6 +16,22 @@ class UserRepository:
     def get_all_users():
         return User.objects.filter(is_superuser= False, is_agency= False, is_deleted= False).order_by("-created_at")
     
+    @staticmethod
+    def get_or_create_google_user(email: str, username: str, is_agency: bool= False):
+        user, created = User.objects.get_or_create(
+            email = email,
+            defaults= {
+                "username": username,
+                "is_active": True,
+                "is_agency": is_agency,
+            },
+        )
+
+        if created:
+            user.set_unusable_password()
+            user.save()
+
+        return user, created
     
     
     

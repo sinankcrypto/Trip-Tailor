@@ -78,3 +78,8 @@ class AgencyListSerializer(serializers.ModelSerializer):
             return obj.agency_profile.status
         except AgencyProfile.DoesNotExist:
             return "pending"
+        
+class GoogleLoginSerializer(serializers.Serializer):
+    token = serializers.CharField(required = True)
+    role = serializers.ChoiceField(choices = ['user','agency'], default = 'user', required = False)
+
