@@ -9,6 +9,7 @@ from users.interface.serializers import UserProfileSerializer
 from users.infra.repositories.django_profile_repository import DjangoProfileRepository
 from users.domain.exceptions import ProfileNotFoundError
 
+
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
@@ -44,5 +45,18 @@ class UserProfileView(APIView):
         repo = DjangoProfileRepository()
         service = ProfileService(repo)
 
-        profile = service.update_profile(request.user, request.data)
-        return Response({"message": "Profile updated"})
+        try:
+            entity = service.get_profile_by_user_id(request.user.id)
+        except ProfileNotFoundError as e:
+            return Response({"detail": str(e)}, status= status.HTTP_404_NOT_FOUND)
+        
+        serializer = UserProfileSerializer(instance= entity, data= request.data, partial= True)
+
+        if serializer.is_valid():
+            updated_entity= service.update_profile(
+                user = request.user,
+                data = serializer.validated_data
+            )
+
+            return Response(UserProfileSerializer(updated_entity).data, status= status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

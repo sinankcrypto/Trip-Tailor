@@ -13,6 +13,7 @@ import ProfileLayout from "../profile/components/layouts/ProfileLayout";
 import PackagesPage from "../../packages/pages/PackagesPage";
 import UserLayout from "../../../layouts/user/UserLayout";
 import PackageDetailPage from "../../packages/pages/PackageDetailsPage";
+import UserBookingsPage from "../../bookings/pages/UserBookings";
 
 const UserRoutes = () => {
   return (
@@ -28,6 +29,7 @@ const UserRoutes = () => {
         <Route path="/user" element= {<ProfileLayout/>} >
           <Route path="profile" element= {<ProfilePage/>}/>
           <Route path="profile/edit" element= {<EditProfilePage/>}/>
+          <Route path="bookings" element= {<UserBookingsPage/>} />
         </Route>
       </Route>
       <Route path="/user" element={<UserLoginLayout/>}>

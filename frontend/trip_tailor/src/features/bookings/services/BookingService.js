@@ -20,8 +20,13 @@ export const getBookingById = async (id) => {
     return res.data;
 }
 
-export const getUserBookings = async () => {
-  const response = await apiClient.get("/bookings/user/");
+export const getUserBookings = async ({ page =1, pageSize = 10, ordering = null, filters = {}} = {}) => {
+  const params = { page, page_size : pageSize, ...filters };
+
+  if (ordering) {
+    params.ordering = ordering
+  }
+  const response = await apiClient.get("/user/bookings/", {params});
   return response.data;
 };
 
@@ -29,3 +34,8 @@ export const getAllBookings = async () => {
   const response = await apiClient.get("admin-panel/bookings/")
   return response.data;
 }
+
+export const cancelBooking = async (bookingId) => {
+  const response = await apiClient.post(`bookings/${bookingId}/cancel/`);
+  return response.data;
+};

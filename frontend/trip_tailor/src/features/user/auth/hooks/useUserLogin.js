@@ -14,9 +14,7 @@ export const useUserLogin = () => {
         try{
             const res = await loginUser(credentials)
 
-            console.log(res.message)
             const user = res.user
-            console.log(user.username)
             setUser(res.user)
             if (user.is_agency != true){
                 navigate('/user/Home')

@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUserLogin } from '../hooks/useUserLogin';
+import { useGoogleLogin } from '../hooks/useGoogleLogin';
 import { Link } from 'react-router-dom';
-import logo from '../../../../assets/authentication/logo.png'
+import logo from '../../../../assets/authentication/logo.png';
 import toast from 'react-hot-toast';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
+  const [role, setRole] = useState('user'); // default role selection
 
   const { login, loading } = useUserLogin();
+  const { googleLogin } = useGoogleLogin();
 
   const validate = () => {
     const newErrors = {};
@@ -18,32 +21,50 @@ const Login = () => {
     return newErrors;
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  const validationErrors = validate();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const validationErrors = validate();
 
-  if (Object.keys(validationErrors).length > 0) {
-    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      const firstError = Object.values(validationErrors)[0];
+      toast.error(firstError);
+      return;
+    }
 
-    // Show toast for first validation error
-    const firstError = Object.values(validationErrors)[0];
-    toast.error(firstError);
+    try {
+      await login({ username, password });
+      toast.success('Logged in successfully!');
+    } catch (err) {
+      const message = err?.response?.data?.detail || 'Login failed';
+      toast.error(message);
+    }
+  };
 
-    return;
-  }
+  // Google login callback
+  const handleGoogleCallback = (googleUser) => {
+    const idToken = googleUser.credential; // GIS provides `credential` token
+    googleLogin(idToken, role); // call our hook
+  };
 
-  try {
-    await login({ username, password });
-    toast.success('Logged in successfully!');
-  } catch (err) {
-    // If login API returns error, show toast
-    const message = err?.response?.data?.detail || 'Login failed';
-    toast.error(message);
-  }
-};
+  // Initialize Google Identity Services button
+  useEffect(() => {
+    /* global google */
+    if (window.google) {
+      google.accounts.id.initialize({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        callback: handleGoogleCallback,
+      });
+
+      google.accounts.id.renderButton(
+        document.getElementById('google-login-btn'),
+        { theme: 'outline', size: 'large', width: '100%' }
+      );
+    }
+  }, [role]);
 
   return (
-<div className="w-full p-10 bg-white font-[Lexend]">
+    <div className="w-full p-10 bg-white font-[Lexend]">
       {/* Logo + Brand */}
       <div className="flex justify-center items-center gap-2 mb-6">
         <img src={logo} alt="Trip Tailor Logo" className="h-8" />
@@ -61,7 +82,6 @@ const handleSubmit = async (e) => {
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        
         {/* Username */}
         <div>
           <input
@@ -105,6 +125,9 @@ const handleSubmit = async (e) => {
           {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>
+
+      {/* Google Login Button */}
+      <div className="mt-4" id="google-login-btn"></div>
 
       {/* Footer Text */}
       <p className="text-center text-sm mt-4 text-gray-700">
