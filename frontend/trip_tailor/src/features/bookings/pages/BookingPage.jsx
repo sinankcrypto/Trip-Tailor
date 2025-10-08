@@ -8,8 +8,9 @@ import getTomorrowDate from "../../../utils/getTomorrowDate";
 const BookingPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { packagedata, loading, error } = useGetOnePackage(id);
+  const { pkg, loading, error } = useGetOnePackage(id);
 
+  const packagedata = pkg
   const [form, setForm] = useState({
     no_of_members: 1,
     date: "",

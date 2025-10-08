@@ -27,16 +27,23 @@ export const useProfile = () =>{
     },[])
 
     const saveProfile = useCallback(
-        async (values) =>{
-            setError(null)
-            const action = profile?.id? updateProfile: createProfile
-            const data = await action(values)
-            setProfile(data)
-            setNotFound(false)
-            return data
+        async (values) => {
+            setError(null);
+            const action = profile?.id ? updateProfile : createProfile;
+
+            try {
+            const data = await action(values);
+            setProfile(data);
+            setNotFound(false);
+            return data;
+            } catch (err) {
+            const message = err?.response?.data || "Failed to save profile";
+            setError(message);
+            throw err; // rethrow so caller can handle it (toast, etc.)
+            }
         },
         [profile]
-    );
+        );
 
     useEffect(() => {
         fetchProfile();

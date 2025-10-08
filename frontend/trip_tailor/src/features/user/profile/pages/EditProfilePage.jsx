@@ -3,6 +3,7 @@ import { useProfile } from '../hooks/useProfile'
 import { useNavigate } from 'react-router-dom'
 import ProfileForm from '../components/ProfileForm'
 import ProfileCard from '../components/ProfileCard'
+import toast from 'react-hot-toast'
 
 const EditProfilePage = () => {
     const { profile, loading, error, saveProfile } = useProfile()
@@ -27,8 +28,12 @@ const EditProfilePage = () => {
         onSubmit={async (values) => {
           try {
             setSubmitting(true);
-            await saveProfile(values); // will call update under the hood
+            await saveProfile(values); 
+            toast.success("Profile updated succesfully")
             navigate("/user/profile");
+          } catch (err) {
+            const msg = err?.response?.data?.detail || "Failed to update profile";
+            toast.error(typeof msg === "string" ? msg : JSON.stringify(msg));
           } finally {
             setSubmitting(false);
           }

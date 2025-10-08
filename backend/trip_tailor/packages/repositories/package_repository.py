@@ -40,7 +40,7 @@ class PackageRepository:
         if images:
             for img in images:
                 PackageImage.objects.create(
-                    package = package, images_url = CloudinaryService.upload_image(img)
+                    package = package, image_url = CloudinaryService.upload_image(img)
                 )
 
         return package

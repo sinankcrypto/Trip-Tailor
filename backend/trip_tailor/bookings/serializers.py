@@ -50,5 +50,6 @@ class UserBookingSerializer(serializers.ModelSerializer):
             "amount",
             "payment_status",
             "payment_method",
+            "booking_status",
             "created_at",
         ]

@@ -28,3 +28,9 @@ class BookingRepository:
     def get_all_bookings(self):
         return Booking.objects.select_related('user', 'agency', 'package').all().order_by('-created_at')
     
+    def get_by_id_for_update(self, pk):
+        try:
+            return Booking.objects.select_for_update().select_related("user", "package", "agency").get(pk=pk)
+        except Booking.DoesNotExist:
+            return None
+    

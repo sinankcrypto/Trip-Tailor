@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db import transaction
 
 from rest_framework import generics, status, filters
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -7,11 +8,15 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from .serializers import BookingSerializer, BookingStatusUpdateSerializer, UserBookingSerializer
-from packages.models import Package
+from .models import Booking
 from .repositories.booking_repository import BookingRepository
 from agency_app.permissions import IsVerifiedAgency
 
+import logging
+
 # Create your views here.
+
+logger = logging.getLogger(__name__)
 
 booking_repo = BookingRepository()
 
@@ -63,6 +68,10 @@ class UserBookingsListView(generics.ListAPIView):
     serializer_class = UserBookingSerializer
     permission_classes = [IsAuthenticated]
 
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["booking_status", "payment_status"]
+    ordering_fields = ["date", "amount"]
+
     def get_queryset(self):
         return booking_repo.get_all_by_user(self.request.user)
 
@@ -81,3 +90,47 @@ class AdminBookingListView(generics.ListAPIView):
 
     def get_queryset(self):
         return booking_repo.get_all_bookings()
+
+
+class BookingCancelView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            with transaction.atomic():
+                booking = booking_repo.get_by_id_for_update(pk)
+                if not booking:
+                    return Response({"detail": "Booking not found"}, status= status.HTTP_404_NOT_FOUND)
+                
+                user = request.user
+
+                is_owner = booking.user_id == user.id
+                is_staff = user.is_staff
+
+                user_agency_id = None
+
+                try:
+                    user_agency_id = user.agency_profile.id
+                
+                except Exception:
+                    user_agency_id = None
+
+                is_agency_owner = (user_agency_id is not None and booking.agency_id == user_agency_id)
+
+                if not(is_owner or is_agency_owner or is_staff):
+                    return Response({"detail":"you do not have permission to cancel this booking."}, status=status.HTTP_403_FORBIDDEN)
+                
+                if booking.booking_status != Booking.BOOKING_ACTIVE:
+                    return Response({"detail":"only active bookings can be cancelled"}, status=status.HTTP_400_BAD_REQUEST)
+                
+                if booking.payment_status == Booking.PAYMENT_PAID:
+                    booking.payment_status = Booking.PAYMENT_REFUNDED
+
+                booking.cancel()
+
+                serialized = UserBookingSerializer(booking).data
+                return Response(serialized, status=status.HTTP_200_OK)
+            
+        except Exception as exc:
+            logger.exception("Error cancelling booking %s: %s", pk, exc)
+            return Response({"detail":"Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
