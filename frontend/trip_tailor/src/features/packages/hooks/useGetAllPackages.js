@@ -1,5 +1,5 @@
 // src/features/packages/hooks/useGetAllPackages.js
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getAllPackages } from "../services/packageService";
 
 export const useGetAllPackages = (filters) => {
@@ -14,8 +14,7 @@ export const useGetAllPackages = (filters) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchPackages = async () => {
+  const fetchPackages = useCallback(async () => {
       setLoading(true);
       try {
         const data = await getAllPackages(filters);
@@ -39,10 +38,10 @@ export const useGetAllPackages = (filters) => {
       } finally {
         setLoading(false);
       }
-    };
-
+    },[filters]) 
+  useEffect(() => {
     fetchPackages();
   }, [filters]);
 
-  return { packages, pagination, loading, error };
+  return { packages, pagination, loading, error, refetch: fetchPackages };
 };
