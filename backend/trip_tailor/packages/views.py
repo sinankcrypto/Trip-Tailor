@@ -3,7 +3,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 
 from rest_framework import status, generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
@@ -11,7 +11,7 @@ from rest_framework.exceptions import ValidationError
 from .serializers import PackageSerializer
 from .repositories.package_repository import PackageRepository
 from .filters import PackageFilter
-from agency_app.permissions import IsVerifiedAgency
+from agency_app.permissions import IsVerifiedAgency, IsAdminOrVerifiedAgency
 
 
 # Create your views here.
@@ -20,7 +20,7 @@ package_repo = PackageRepository()
 
 class PackageCreateView(generics.CreateAPIView):
     serializer_class = PackageSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsVerifiedAgency]
 
     def perform_create(self, serializer):
         try:
@@ -35,7 +35,7 @@ class PackageCreateView(generics.CreateAPIView):
     
 class PackageUpdateView(generics.UpdateAPIView):
     serializer_class = PackageSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsVerifiedAgency]
 
     def get_queryset(self):
         return package_repo.get_all_listed()
@@ -63,7 +63,7 @@ class AgencyPackageListView(APIView):
             return Response({"detail":str(e)}, status= status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 class PackageToggleListView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminOrVerifiedAgency]
 
     def patch(self,request, pk):
         try:
@@ -77,7 +77,7 @@ class PackageToggleListView(APIView):
             return Response({"detail": str(e)}, status= status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 class PackageSoftDeleteView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsVerifiedAgency]
 
     def delete(self, request, pk):
         try:
