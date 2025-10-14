@@ -1,5 +1,12 @@
 from rest_framework import serializers
 from .models import Package,PackageImage
+from agency_app.models import AgencyProfile
+
+class AgencyMiniSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AgencyProfile
+        fields = ("agency_name", "profile_pic", "description", "phone_number", "address")
+        read_only_fields = fields
 
 class PackageImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -9,8 +16,7 @@ class PackageImageSerializer(serializers.ModelSerializer):
 class PackageSerializer(serializers.ModelSerializer):
     images = PackageImageSerializer(many = True, read_only = True)
     main_image = serializers.ImageField(write_only=True, required=False)
-    agency_name = serializers.CharField(source="agency.agency_name", read_only=True)
-
+    agency = AgencyMiniSerializer(read_only=True)
 
     class Meta:
         model = Package

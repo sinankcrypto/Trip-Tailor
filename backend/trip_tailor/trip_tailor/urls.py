@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include, re_path
+from django.http import HttpResponse
 
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
@@ -37,8 +38,11 @@ schema_view = get_schema_view(
    permission_classes=(permissions.AllowAny,),
 )
 
+def health_check(request):
+    return HttpResponse("OK", status=200)
 
 urlpatterns = [
+    path('health/', health_check),
     path('admin/', admin.site.urls),
     path('api/admin-panel/',include('admin_app.interface.urls')),
     path('api/user/', include('user_auth.interface.urls')),
