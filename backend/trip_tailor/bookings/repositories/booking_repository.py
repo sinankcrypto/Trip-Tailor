@@ -6,7 +6,7 @@ class BookingRepository:
         return Booking.objects.create(**data)
     
     def get_all_by_user(self, user):
-        return Booking.objects.select_related("package", "user").filter(user=user)
+        return Booking.objects.select_related("package", "user").filter(user=user).order_by("-created_at")
 
     def get_all_by_agency(self, agency):
         return Booking.objects.select_related("package", "user").filter(agency=agency)

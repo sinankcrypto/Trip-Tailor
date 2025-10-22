@@ -3,10 +3,12 @@ import React, { useState } from "react";
 import { useGetUserBookings } from "../hooks/useGetUserBookings";
 import { useCancelBooking } from "../hooks/useCancelBooking";
 import ConfirmModal from "../../../components/ConfirmModal";
+import { useNavigate } from "react-router-dom";
 
 const UserBookingsPage = () => {
   const { bookings, loading, error, pagination, setParams, refetch } = useGetUserBookings();
   const { handleCancel, loading: cancelLoading } = useCancelBooking();
+  const navigate = useNavigate()
 
   const [showModal, setShowModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -118,7 +120,7 @@ const UserBookingsPage = () => {
             <div className="flex space-x-2">
               <button
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700"
-                onClick={() => alert(`Booking details for ${b.id}`)}
+                onClick={() => navigate(`/user/bookings/${b.id}`)}
               >
                 Details
               </button>

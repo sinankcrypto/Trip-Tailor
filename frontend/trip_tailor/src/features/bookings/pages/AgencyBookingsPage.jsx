@@ -1,9 +1,11 @@
 // src/features/bookings/pages/AgencyBookingsPage.jsx
 import { useGetAgencyBookings } from "../hooks/useGetAgencyBookings";
 import { updateBookingStatus } from "../services/BookingService";
+import { useNavigate } from "react-router-dom";
 
 const AgencyBookingsPage = () => {
   const { bookings, loading, error, refetch } = useGetAgencyBookings();
+  const navigate = useNavigate();
 
   const handleStatusChange = async (id, status) => {
     try {
@@ -31,7 +33,7 @@ const AgencyBookingsPage = () => {
             <th className="p-3">Members</th>
             <th className="p-3">Amount</th>
             <th className="p-3">Payment Status</th>
-            <th className="p-3">Actions</th>
+            <th className="p-3 text-center">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -43,17 +45,25 @@ const AgencyBookingsPage = () => {
               <td className="p-3">{b.no_of_members}</td>
               <td className="p-3">₹{b.amount}</td>
               <td className="p-3">{b.payment_status}</td>
-              <td className="p-3">
+              <td className="p-3 flex space-x-2 justify-center">
                 {b.payment_status !== "PAID" ? (
-                    <button
+                  <button
                     onClick={() => handleStatusChange(b.id, "PAID")}
                     className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition"
-                    >
+                  >
                     Mark Paid
-                    </button>
+                  </button>
                 ) : (
-                    <span className="text-gray-500">No actions</span>
+                  <span className="text-gray-500">Paid</span>
                 )}
+
+                {/* ✅ Details Button */}
+                <button
+                  onClick={() => navigate(`/agency/bookings/${b.id}`)}
+                  className="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition"
+                >
+                  Details
+                </button>
               </td>
             </tr>
           ))}

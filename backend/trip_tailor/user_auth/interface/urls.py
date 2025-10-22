@@ -6,6 +6,6 @@ urlpatterns = [
     path('signup/', UserSignupView.as_view(), name='user-signup'),
     path('verify-otp/', OTPVerifyView.as_view(), name='verify-otp'),
     path('logout/', LogoutView.as_view(), name='logout'),
-    path('google-login/', GoogleLoginView.as_view(), name='google-login')
+    path('google-login/', GoogleLoginView.as_view(), name='google-login'),
 
 ]

@@ -83,7 +83,7 @@ const AdminPackagesPage = () => {
                     {pkg.title}
                   </td>
                   <td className="border px-4 py-2 text-gray-700">
-                    {pkg.agency_name}
+                    {pkg.agency.agency_name}
                   </td>
                   <td className="border px-4 py-2 text-gray-700">
                     ₹{pkg.price}
