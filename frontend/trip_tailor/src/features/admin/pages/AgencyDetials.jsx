@@ -2,19 +2,19 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import apiClient from "../../../api/apiClient";
 import toast from "react-hot-toast";
+import { X } from "lucide-react"; // For close icon
 
 const AgencyDetails = () => {
   const { id } = useParams();
   const [agency, setAgency] = useState(null);
   const [loading, setLoading] = useState(true);
-
   const [verifying, setVerifying] = useState(false);
   const [rejecting, setRejecting] = useState(false);
 
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
-
   const [rejectReason, setRejectReason] = useState("");
+  const [previewImage, setPreviewImage] = useState(null); // For full image view
 
   const navigate = useNavigate();
 
@@ -116,7 +116,8 @@ const AgencyDetails = () => {
             <img
               src={agency.profile_pic}
               alt="Profile"
-              className="h-24 mt-1"
+              className="h-24 mt-1 cursor-pointer hover:opacity-80 transition border rounded"
+              onClick={() => setPreviewImage(agency.profile_pic)}
             />
           </div>
         )}
@@ -127,7 +128,8 @@ const AgencyDetails = () => {
             <img
               src={agency.license_document}
               alt="License"
-              className="h-24 mt-1"
+              className="h-24 mt-1 cursor-pointer hover:opacity-80 transition border rounded"
+              onClick={() => setPreviewImage(agency.license_document)}
             />
           </div>
         )}
@@ -156,9 +158,7 @@ const AgencyDetails = () => {
       {isVerifyModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-lg font-semibold mb-4">
-              Confirm Verification
-            </h2>
+            <h2 className="text-lg font-semibold mb-4">Confirm Verification</h2>
             <p className="mb-6">
               Are you sure you want to verify this agency?
             </p>
@@ -216,6 +216,31 @@ const AgencyDetails = () => {
                 {rejecting ? "Rejecting..." : "Reject"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🖼️ Fullscreen Image Preview Modal */}
+      {previewImage && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50"
+          onClick={() => setPreviewImage(null)}
+        >
+          <div
+            className="relative max-w-6xl w-full flex justify-center items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="absolute top-5 right-5 text-white hover:text-gray-300 transition"
+              onClick={() => setPreviewImage(null)}
+            >
+              <X size={32} />
+            </button>
+            <img
+              src={previewImage}
+              alt="Full Preview"
+              className="max-h-[90vh] max-w-[90vw] object-contain rounded-xl shadow-2xl"
+            />
           </div>
         </div>
       )}

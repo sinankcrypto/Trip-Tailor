@@ -3,19 +3,20 @@ from .models import Booking
 
 class BookingSerializer(serializers.ModelSerializer):
     package_title = serializers.CharField(source="package.title", read_only=True)
-    package_image = serializers.ImageField(source="package.main_image", read_only=True)
+    package_image = serializers.CharField(source="package.main_image", read_only=True)
     package_duration = serializers.CharField(source="package.duration", read_only=True)
     username = serializers.CharField(source="user.username", read_only=True)
-    agency_name = serializers.CharField(source="agency.agency_name", read_only=True)  # ✅ new field
+    agency_name = serializers.CharField(source="agency.agency_name", read_only=True) 
+    user_email = serializers.CharField(source="user.email", read_only=True)
 
     class Meta:
         model = Booking
         fields = [
             "id", "package", "package_title", "package_image", "package_duration",
             "user", "no_of_members", "amount", "date","agency_name",
-            "payment_method", "payment_status","booking_status","cancelled_at","username"
+            "payment_method", "payment_status","booking_status","cancelled_at","username", "created_at", "user_email"
         ]
-        read_only_fields =["amount", "payment_status", "user", "agency"]
+        read_only_fields =["amount", "payment_status", "user", "agency", "user_email"]
 
     def create(self, validated_data):
         package = validated_data["package"]

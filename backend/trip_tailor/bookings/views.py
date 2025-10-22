@@ -12,6 +12,8 @@ from .models import Booking
 from .repositories.booking_repository import BookingRepository
 from agency_app.permissions import IsVerifiedAgency
 
+from core.tasks import send_booking_confirmation_email_task
+
 import logging
 
 # Create your views here.
@@ -25,7 +27,9 @@ class BookingCreateView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save()
+        booking = serializer.save()
+
+        send_booking_confirmation_email_task.delay(booking.id)
 
 class AgencyBookingListView(generics.ListAPIView):
     serializer_class = BookingSerializer

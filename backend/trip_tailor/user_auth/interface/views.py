@@ -12,7 +12,11 @@ from ..repository.user_repository import UserRepository
 
 from django.core.mail import send_mail
 from random import randint
+from datetime import timedelta
+from django.utils import timezone
 from ..domain.models import EmailOTP, CustomUser
+
+from core.tasks import send_otp_email_task
 
 import requests
 
@@ -81,15 +85,12 @@ class UserSignupView(APIView):
             user = serializer.save()
 
             otp = f"{randint(100000,999999)}"
-            EmailOTP.objects.create(email= user.email, otp= otp)
-
-            send_mail(
-                subject="Your Trip Tailor OTP",
-                message=f"Your OTP is: {otp} Please verify to login to Trip Tailor",
-                from_email="triptailor.boss@gmail.com",
-                recipient_list=[user.email],
-                fail_silently=False,
+            EmailOTP.objects.create(
+                email=user.email,
+                otp=otp,
             )
+
+            send_otp_email_task.delay(user.email, otp)
 
             return Response(
                 {'message': f'Signup successful. Please verify OTP sent to {user.email}.',

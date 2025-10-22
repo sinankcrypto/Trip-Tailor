@@ -175,7 +175,7 @@ const EditPackagePage = () => {
                 {pkg.images.map((img, idx) => (
                   <img
                     key={idx}
-                    src={img}
+                    src={img.image_url}
                     alt={`Sub ${idx}`}
                     className="h-20 w-20 object-cover rounded"
                   />

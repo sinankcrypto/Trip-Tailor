@@ -46,7 +46,12 @@ class PackageRepository:
         return package
     
     def get_all_listed(self):
-        return Package.objects.filter(is_listed = True, is_deleted = False)
+        return (
+            Package.objects
+            .filter(is_listed=True, is_deleted=False)
+            .select_related("agency")
+            .prefetch_related("images")
+        )
     
     def get_by_id(self,pk):
         return Package.objects.get(pk = pk)
