@@ -16,6 +16,7 @@ from datetime import timedelta
 import os
 import environ
 import cloudinary
+import stripe
 
 
 env = environ.Env(
@@ -69,6 +70,7 @@ INSTALLED_APPS = [
     'users',
     'packages',
     'bookings',
+    'payments',
 ]
 
 MIDDLEWARE = [
@@ -241,3 +243,10 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "Asia/Kolkata"
+
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
+STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY')
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+DOMAIN = os.getenv("FRONTEND_URL", "http://localhost:5173")
+
+stripe.api_key = STRIPE_SECRET_KEY

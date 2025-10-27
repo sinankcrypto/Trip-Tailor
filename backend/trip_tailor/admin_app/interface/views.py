@@ -11,6 +11,7 @@ from agency_app.repository.agency_repository import AgencyRepository
 from core.pagination import StandardResultsSetPagination
 
 from agency_app.models import AgencyProfile
+from payments.repository.payment_repository import PaymentRepository
 
 from django.contrib.auth import get_user_model
 
@@ -84,14 +85,6 @@ class AdminLogoutView(APIView):
         )
         return response
     
-# class UserListView(APIView):
-#     permission_classes = [IsAdminUser]
-
-#     def get(self, request):
-#         users = CustomUser.objects.filter(is_superuser= False, is_agency=False)
-#         serializer = CustomUserSerializer(users, many = True)
-
-#         return Response(serializer.data)
 
 class UserListView(generics.ListAPIView):
     queryset = UserRepository.get_all_users()
@@ -99,14 +92,6 @@ class UserListView(generics.ListAPIView):
     permission_classes = [IsAdminUser]
     pagination_class = StandardResultsSetPagination
     
-# class AgencyListView(APIView):
-#     permission_classes = [IsAdminUser]
-
-#     def get(self, request):
-#         agencies = AgencyRepository.get_all_agencies_with_profiles()
-#         serializer = CustomUserSerializer(agencies, many= True)
-
-#         return Response(serializer.data)
 
 class AgencyListView(generics.ListAPIView):
     queryset = AgencyRepository.get_all_agencies_with_profiles()
@@ -210,3 +195,10 @@ class AgencyRejectView(APIView):
         
         except User.DoesNotExist:
             return Response({'detail': 'Agency not found'}, status=status.HTTP_404_NOT_FOUND)
+
+class PlatformFeeView(APIView):
+    def get(self, request):
+        fee = PaymentRepository.get_current_fee()
+        return Response({
+            "percentage":fee
+        })

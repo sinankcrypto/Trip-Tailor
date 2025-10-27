@@ -50,9 +50,11 @@ urlpatterns = [
     path('api/user/', include('users.interface.urls')),
     path('api/packages/', include('packages.urls')),
     path('api/',include('bookings.urls')),
+    path('api/payments/',include('payments.urls')),
     path("api/auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),       
     path('api/token/refresh-cookie/', RefreshTokenCookieView.as_view(), name='refresh-cookie'),
+
 
     path("auth/", include("dj_rest_auth.urls")),
     path("auth/registration/", include("dj_rest_auth.registration.urls")),

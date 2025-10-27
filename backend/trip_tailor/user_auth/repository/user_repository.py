@@ -9,6 +9,10 @@ class UserRepository:
         return User.objects.filter(username=username).first()
     
     @staticmethod
+    def get_user_by_id(id):
+        return User.objects.get(id=id)
+    
+    @staticmethod
     def authenticate_user(username,password):
         return authenticate(username=username, password=password)
     

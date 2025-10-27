@@ -14,6 +14,7 @@ class AgencyProfile(models.Model):
     profile_pic = models.ImageField(upload_to='agency/profile_pics/')
     license_document = models.ImageField(upload_to='agency/licenses/')
     description = models.TextField()
+    stripe_account_id = models.CharField(max_length=255, blank=True, null=True)
     
     status = models.CharField(
         max_length=20,
