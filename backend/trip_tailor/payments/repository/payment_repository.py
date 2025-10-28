@@ -1,5 +1,6 @@
 import stripe
 
+from django.conf import settings
 from admin_app.models import PlatformFee
 from ..models import Transaction
 
@@ -18,7 +19,11 @@ class PaymentRepository:
     
     @staticmethod
     def get_current_fee():
-        return PlatformFee.get_current_fee()
+        return PlatformFee.objects.first()
+    
+    @staticmethod
+    def get_or_create_fee(id):
+        return PlatformFee.objects.get_or_create(id=id)
     
     @staticmethod
     def create_checkout_session(booking_id, user, agency, amount):
@@ -42,8 +47,8 @@ class PaymentRepository:
                     "quantity":1,
                 },
             ],
-            success_url="",
-            cancel_url="",
+            success_url=f"{settings.DOMAIN}/payment/success",
+            cancel_url=f"{settings.DOMAIN}/payment/cancel",
             metadata={
                 "booking_id":booking_id,
                 "user_id":user.id,
@@ -65,3 +70,5 @@ class PaymentRepository:
 
         return session.url
 
+
+    

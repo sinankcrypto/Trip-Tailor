@@ -200,5 +200,14 @@ class PlatformFeeView(APIView):
     def get(self, request):
         fee = PaymentRepository.get_current_fee()
         return Response({
-            "percentage":fee
+            "percentage":fee.percentage,
+            "minimum_fee":fee.minimum_fee
         })
+    
+    def post(self, request):
+        data = request.data
+        fee, _ = PaymentRepository.get_or_create_fee(id=1)
+        fee.percentage = data.get("percentage", fee.percentage)
+        fee.minimum_fee = data.get("minimum_fee", fee.minimum_fee)
+        fee.save()
+        return Response({"message": "Platform fee updated successfully"})
