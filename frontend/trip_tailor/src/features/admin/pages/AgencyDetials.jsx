@@ -82,7 +82,7 @@ const AgencyDetails = () => {
 
       <div className="bg-white rounded shadow p-4 border border-gray-200 space-y-2">
         <p>
-          <strong>ID:</strong> {agency.id}
+          <strong>ID:</strong> {agency.agency_id}
         </p>
         <p>
           <strong>Username:</strong> {agency.username}
@@ -135,7 +135,7 @@ const AgencyDetails = () => {
         )}
 
         {/* Action Buttons */}
-        {!["VERIFIED", "REJECTED"].includes(agency.status) &&
+        {!["verified", "rejected"].includes(agency.status) &&
           agency.profile_completed && (
             <div className="flex gap-4 mt-4">
               <button

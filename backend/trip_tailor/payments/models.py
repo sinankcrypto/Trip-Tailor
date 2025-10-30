@@ -3,11 +3,15 @@ from django.conf import settings
 
 # Create your models here.
 
-
-
 class Transaction(models.Model):
-    booking_id = models.CharField(max_length=100)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="tansactions")
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        COMPLETED = "completed", "Completed"
+        FAILED = "failed", "Failed"
+        CANCELLED = "cancelled", "Cancelled"
+
+    booking = models.ForeignKey("bookings.Booking", on_delete=models.CASCADE, related_name="transactions")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="transactions")
     agency = models.ForeignKey("agency_app.AgencyProfile", null=True, on_delete=models.SET_NULL, related_name="transactions")
 
     stripe_session_id = models.CharField(max_length=255, unique=True)
@@ -17,7 +21,11 @@ class Transaction(models.Model):
     platform_fee = models.IntegerField(default=0)
     currency = models.CharField(max_length=10, default="inr")
 
-    status = models.CharField(max_length=50, default="pending")
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

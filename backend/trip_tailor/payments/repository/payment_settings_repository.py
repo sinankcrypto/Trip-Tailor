@@ -13,7 +13,7 @@ class PaymentSettingsRepository:
         
         account = stripe.Account.create(
             type="express",
-            country="IN",
+            country="US",
             email=email or agency.user.email if getattr(agency, "user", None) else None,
             capabilities={
                 "card_payments":{"requested": True},
@@ -21,7 +21,7 @@ class PaymentSettingsRepository:
             }
         )
         agency.stripe_account_id = account.id
-        agency.save(udpated_fields=["stripe_account_id"])
+        agency.save(update_fields=["stripe_account_id"])
         return account.id
 
     @staticmethod

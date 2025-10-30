@@ -10,7 +10,7 @@ class AgencyRepository:
     
     @staticmethod
     def get_profile(user):
-        return AgencyProfile.objects.get(user=user.id)
+        return AgencyProfile.objects.get(user=user)
     
     @staticmethod
     def update_profile(user, data):

@@ -219,10 +219,23 @@ AUTHENTICATION_BACKENDS = [
 
 SITE_ID = 1
 
-ACCOUNT_LOGIN_METHODS = {'email'}
-ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
-
+ACCOUNT_AUTHENTICATION_METHOD = "username"   # users log in with username
+ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_EMAIL_REQUIRED = True                # still require email at signup
 ACCOUNT_EMAIL_VERIFICATION = "none"
+
+# Signup fields configuration
+ACCOUNT_SIGNUP_FIELDS = ["username", "email", "password1", "password2"]
+
+# New-style configuration for dj-rest-auth (prevents deprecated warnings)
+REST_AUTH = {
+    "SIGNUP_FIELDS": {
+        "username": {"required": True},
+        "email": {"required": True},
+        "password1": {"required": True},
+        "password2": {"required": True},
+    },
+}
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {

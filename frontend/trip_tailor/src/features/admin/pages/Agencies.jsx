@@ -29,7 +29,7 @@ const Agencies = () => {
               {agencies.map((agency) => (
                 <tr key={agency.id} className="hover:bg-green-50">
                   <td className="py-2 px-4 border text-center">{agency.id}</td>
-                  <td className="py-2 px-4 border">{agency.username}</td>
+                  <td className="py-2 px-4 border">{agency.agency_name}</td>
                   <td className="py-2 px-4 border">{agency.email}</td>
                   <td className="py-2 px-4 border text-center">
                     {agency.is_active ? "✅" : "❌"}

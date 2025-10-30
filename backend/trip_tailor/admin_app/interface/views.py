@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics
-from admin_app.interface.serializers import AdminLoginSerializer
+from admin_app.interface.serializers import AdminLoginSerializer, PlatformFeeSerializer
 from user_auth.repository.user_repository import UserRepository
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
@@ -118,6 +118,7 @@ class AgencyDetailsView(APIView):
                     profile.description,
                 ]),
                 'agency_name': profile.agency_name,
+                'agency_id':profile.id,
                 'phone_number': profile.phone_number,
                 'profile_pic': request.build_absolute_uri(profile.profile_pic.url) if profile.profile_pic else None,
                 'license_document':(
@@ -197,6 +198,8 @@ class AgencyRejectView(APIView):
             return Response({'detail': 'Agency not found'}, status=status.HTTP_404_NOT_FOUND)
 
 class PlatformFeeView(APIView):
+    permission_classes = [IsAdminUser]
+
     def get(self, request):
         fee = PaymentRepository.get_current_fee()
         return Response({
@@ -205,9 +208,9 @@ class PlatformFeeView(APIView):
         })
     
     def post(self, request):
-        data = request.data
         fee, _ = PaymentRepository.get_or_create_fee(id=1)
-        fee.percentage = data.get("percentage", fee.percentage)
-        fee.minimum_fee = data.get("minimum_fee", fee.minimum_fee)
-        fee.save()
-        return Response({"message": "Platform fee updated successfully"})
+        serializer = PlatformFeeSerializer(fee, data= request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Platform fee updated successfully"})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

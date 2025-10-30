@@ -15,7 +15,7 @@ class PlatformFee(models.Model):
         default=100.00,
         help_text="Minimum fee charged if percentage is lower."
     )
-    active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = "Platform Fee"
@@ -29,5 +29,5 @@ class PlatformFee(models.Model):
         return max(percentage_fee,self.minimum_fee)
     
     @classmethod
-    def get_current_fee(self):
-        return self.percentage
+    def get_current_fee(cls):
+        return cls.objects.first()

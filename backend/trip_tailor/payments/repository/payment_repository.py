@@ -3,9 +3,29 @@ import stripe
 from django.conf import settings
 from admin_app.models import PlatformFee
 from ..models import Transaction
+from bookings.repositories.booking_repository import BookingRepository
 
 class PaymentRepository:
 
+    @staticmethod
+    def get_transaction_by_payment_intent(payment_intent):
+        return Transaction.objects.filter(stripe_payment_intent=payment_intent).first()
+
+    @staticmethod
+    def get_transaction_by_session_id(session_id):
+        try:
+            return Transaction.objects.get(stripe_session_id=session_id)
+        except Transaction.DoesNotExist:
+            return None
+        
+    @staticmethod
+    def update_transaction_status(transaction, status: Transaction.Status, payment_intent: str = None):
+        transaction.status = status
+        if payment_intent:
+            transaction.stripe_payment_intent = payment_intent
+        transaction.save(update_fields=["status", "stripe_payment_intent"])
+        return transaction
+    
     @staticmethod
     def get_platform_fee(amount):
         
@@ -14,7 +34,7 @@ class PaymentRepository:
             raise ValueError("Platform fee configuration not found")
         
 
-        final_fee = PlatformFee.calculate_fee(amount)
+        final_fee = platform_fee_obj.calculate_fee(amount)
         return round(final_fee,2)
     
     @staticmethod
@@ -47,6 +67,12 @@ class PaymentRepository:
                     "quantity":1,
                 },
             ],
+            payment_intent_data={
+                "application_fee_amount":platform_fee*100,
+                "transfer_data":{
+                    "destination":agency.stripe_account_id,
+                },
+            },
             success_url=f"{settings.DOMAIN}/payment/success",
             cancel_url=f"{settings.DOMAIN}/payment/cancel",
             metadata={
@@ -56,16 +82,18 @@ class PaymentRepository:
                 "platform_fee":platform_fee,
             },
         )
+        booking_repo = BookingRepository()
+        booking = booking_repo.get_by_id(booking_id)
 
         Transaction.objects.create(
-            booking_id=booking_id,
+            booking=booking,
             user=user,
             agency=agency,
             stripe_session_id=session.id,
             amount=amount,
             platform_fee=platform_fee,
             currency="inr",
-            status="pending",
+            status=Transaction.Status.PENDING,
         )
 
         return session.url
