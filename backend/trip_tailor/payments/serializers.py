@@ -1,14 +1,21 @@
 from rest_framework import serializers
+from .models import Transaction
 
 class PaymentSettingsStatusSerializer(serializers.Serializer):
     connected = serializers.BooleanField()
     charges_enabled = serializers.BooleanField(required=False)
     payouts_enabled = serializers.BooleanField(required=False)
     account = serializers.DictField(required=False)
-
-class CheckoutSessionSerialzer(serializers.Serializer):
-    booking_id = serializers.IntegerField(required=True)
-    user_id = serializers.IntegerField(required=True)
-    agency_id = serializers.IntegerField(required=True)
-    amount = serializers.DecimalField(max_digits=10, decimal_places=2, required=True)
     
+class TransactionSerializer(serializers.ModelSerializer):
+    user_username = serializers.EmailField(source="user.username", read_only=True)
+    agency_name = serializers.CharField(source="agency.agency_name", read_only=True)
+
+    class Meta:
+        model = Transaction
+        fields = [
+            "id", "booking_id", "user_username", "agency_name",
+            "amount", "platform_fee", "currency", "status",
+            "stripe_session_id", "stripe_payment_intent",
+            "created_at"
+        ]

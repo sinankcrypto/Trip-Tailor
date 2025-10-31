@@ -16,7 +16,7 @@ const sidebarItems = [
   { label: "Profile", path: "/user/profile", icon: User },
   { label: "Bookings", path: "/user/bookings", icon: CalendarCheck },
   { label: "Wishlist", path: "/user/wishlist", icon: Heart },
-  { label: "Payments", path: "/user/payments", icon: CreditCard },
+  { label: "Transactions", path: "/user/transactions", icon: CreditCard },
   { label: "Messages", path: "/user/messages", icon: MessageCircle },
   { label: "Settings", path: "/user/settings", icon: SettingsIcon },
 ];

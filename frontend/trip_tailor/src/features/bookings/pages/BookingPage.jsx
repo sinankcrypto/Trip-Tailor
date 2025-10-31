@@ -2,8 +2,9 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useGetOnePackage } from "../../packages/hooks/useGetOnePackage";
-import { createBooking } from "../services/BookingService";
+import { createBooking, createCheckoutSession } from "../services/BookingService";
 import getTomorrowDate from "../../../utils/getTomorrowDate";
+import toast from "react-hot-toast";
 
 const BookingPage = () => {
   const { id } = useParams();
@@ -59,6 +60,23 @@ const BookingPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleCreateBooking = async (payload) => {
+    try {
+      const booking = await createBooking(payload);
+
+      if (payload.payment_method == "ONLINE"){
+        const session = await createCheckoutSession(booking.id);
+
+        window.location.href = session.checkout_url;
+      } else {
+        toast.success("Booking created succesfully")
+        navigate(`/booking-success/${booking.id}`); // 👈 redirect to success page
+      }
+    } catch (error) {
+      console.error("Booking failed:", error);
+      toast.error("something went wrong, try again")
+    }
+  }
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -70,8 +88,8 @@ const BookingPage = () => {
         date: form.date,
         payment_method: form.payment_method,
       };
-      const booking = await createBooking(payload);
-      navigate(`/booking-success/${booking.id}`); // 👈 redirect to success page
+      handleCreateBooking(payload);
+      
     } catch (err) {
       console.error("Booking failed", err);
       alert("Failed to book package. Try again.");
@@ -168,7 +186,7 @@ const BookingPage = () => {
               className="w-full border rounded-lg px-4 py-2 focus:ring focus:ring-green-300"
             >
               <option value="ON_HAND">On Hand (Cash)</option>
-              {/* Future: <option value="ONLINE">Online</option> */}
+              <option value="ONLINE">Online (Stripe)</option>
             </select>
           </div>
 

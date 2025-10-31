@@ -73,7 +73,7 @@ class PaymentRepository:
                     "destination":agency.stripe_account_id,
                 },
             },
-            success_url=f"{settings.DOMAIN}/payment/success",
+            success_url=f"{settings.DOMAIN}/booking-success/{booking_id}?session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url=f"{settings.DOMAIN}/payment/cancel",
             metadata={
                 "booking_id":booking_id,
@@ -98,5 +98,44 @@ class PaymentRepository:
 
         return session.url
 
+    @staticmethod
+    def list_transactions_for_admin(filters=None, ordering="-created_at"):
+        queryset = Transaction.objects.all()
 
+        if filters:
+            if 'status' in filters:
+                queryset = queryset.filter(status=filters["status"])
+            if 'agency' in filters:
+                queryset= queryset.filter(agency__name__icontains=filters['agency'])
+            if 'user' in filters:
+                queryset = queryset.filter(user__username__icontains=filters["user"])
+
+        if ordering:
+            queryset = queryset.order_by(ordering)
+
+        return queryset
     
+    @staticmethod
+    def list_transactions_for_user(user, filters=None, ordering="-created_at"):
+        queryset = Transaction.objects.filter(user=user)
+
+        if filters:
+            if 'status' in filters:
+                queryset = queryset.filter(status=filters["status"])
+            
+        if ordering:
+            queryset = queryset.order_by(ordering)
+
+        return queryset
+    
+    def list_transactions_for_agency(agency, filters=None, ordering = "-created_at"):
+        queryset = Transaction.objects.filter(agency=agency)
+
+        if filters:
+            if "status" in filters:
+                queryset = queryset.filter(status=filters["status"])
+
+        if ordering:
+            queryset = queryset.order_by(ordering)
+
+        return queryset

@@ -15,6 +15,7 @@ import UserLayout from "../../../layouts/user/UserLayout";
 import PackageDetailPage from "../../packages/pages/PackageDetailsPage";
 import UserBookingsPage from "../../bookings/pages/UserBookings";
 import UserBookingDetailsPage from "../../bookings/pages/UserBookingDetails";
+import UserTransactionsPage from "../../payments/pages/UserTransactions";
 
 const UserRoutes = () => {
   return (
@@ -32,6 +33,7 @@ const UserRoutes = () => {
           <Route path="profile/edit" element= {<EditProfilePage/>}/>
           <Route path="bookings" element= {<UserBookingsPage/>} />
           <Route path="bookings/:id" element= {<UserBookingDetailsPage/>}/>
+          <Route path="transactions" element= {<UserTransactionsPage/>}/>
         </Route>
       </Route>
       <Route path="/user" element={<UserLoginLayout/>}>

@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     stripe_webhook, CreateCheckoutSessionView, AgencyConnectStripeView, AgencyPaymentSettingsView,
-    AgencyDisconnectStripeView
+    AgencyDisconnectStripeView, AdminTransactionListView, UserTransactionListView, AgencyTransactionListView
 )
 
 urlpatterns = [
@@ -10,4 +10,7 @@ urlpatterns = [
     path("agency/payment-settings/", AgencyPaymentSettingsView.as_view(), name="agency-payment-settings"),
     path("agency/payment-settings/connect/", AgencyConnectStripeView.as_view(), name="agency-connect-strie"),
     path("agency/payment-settings/disconnect/", AgencyDisconnectStripeView.as_view(), name="agency-disconnect-stripe"),
+    path("admin/transactions/", AdminTransactionListView.as_view(), name="admin-transactions"),
+    path("user/transactions/", UserTransactionListView.as_view(), name="user-transactions"),
+    path("agency/transactions/", AgencyTransactionListView.as_view(), name="agency-transactions"),
 ]   

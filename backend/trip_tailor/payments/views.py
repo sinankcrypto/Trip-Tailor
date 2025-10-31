@@ -4,18 +4,20 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from django.contrib.auth import get_user_model
+from django.db.models import Sum, Count
 
-from rest_framework import status
+from rest_framework import status, generics, permissions, filters
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
 
 from user_auth.repository.user_repository import UserRepository
 from agency_app.repository.agency_repository import AgencyRepository
 from .repository.payment_repository import PaymentRepository
 from .repository.payment_settings_repository import PaymentSettingsRepository
 from agency_app.permissions import IsVerifiedAgency
-from .serializers import PaymentSettingsStatusSerializer, CheckoutSessionSerialzer
+from .serializers import PaymentSettingsStatusSerializer, TransactionSerializer
 from bookings.repositories.booking_repository import BookingRepository
 
 from core.constants import TransactionStatus, PaymentStatus
@@ -119,25 +121,29 @@ class CreateCheckoutSessionView(APIView):
         """
         Create a checkout session and a transaction
         """
-        serializer = CheckoutSessionSerialzer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
+        booking_repo = BookingRepository()
+
+        booking_id = request.data.get("booking_id")
+        if not booking_id:
+            return Response({"error": "booking_id is required"}, status=400)
+        booking = booking_repo.get_by_id(booking_id)
+        if not booking:
+            return Response({"error": "Booking not found"}, status=404)
         
-        user = UserRepository.get_user_by_id(data['user_id'])
-        agency = AgencyRepository.get_profile(data['agency_id'])
-        booking_id = data["booking_id"]
-        logger.info(f"booking id: {booking_id}")
+        user = request.user
+        agency = booking.agency
+        amount = booking.amount
 
         try:
             session_url = PaymentRepository.create_checkout_session(
-                booking_id, user, agency, data['amount']
+                booking_id, user, agency, amount
             )
             return Response({"checkout_url":session_url})
         except Exception as e:
             return Response({"error":str(e)}, status=400)
     
 class AgencyPaymentSettingsView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsVerifiedAgency]
 
     def get(self, request):
         """
@@ -175,7 +181,7 @@ class AgencyConnectStripeView(APIView):
         return Response({"url":account_link_url, "stripe_account_id":stripe_account_id})
     
 class AgencyDisconnectStripeView(APIView):
-    permission_classes=[IsAuthenticated]
+    permission_classes=[IsVerifiedAgency]
 
     def post(self, request):
         """
@@ -190,3 +196,115 @@ class AgencyDisconnectStripeView(APIView):
         return Response({"message": "Disconnected stripe account locally"})
 
             
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = "page_size"
+    max_page_size = 100
+
+#---ADMIN---
+
+class AdminTransactionListView(generics.ListAPIView):
+    serializer_class = TransactionSerializer
+    pagination_class = StandardResultsSetPagination
+    permission_classes = [IsAdminUser]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ["amount", "created_at", "status"]
+
+    def get_queryset(self):
+        filters_data = {
+            "status": self.request.query_params.get("status"),
+            "agency": self.request.query_params.get("agency"),
+            "user": self.request.query_params.get("user"),
+        }
+        filters_data = {k: v for k, v in filters_data.items() if v}
+        ordering = self.request.query_params.get("ordering", "-created_at")
+
+        return PaymentRepository.list_transactions_for_admin(filters=filters_data, ordering=ordering)
+    
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        queryset = self.get_queryset()
+
+        summary = queryset.aggregate(
+            total_amount=Sum("amount"),
+            total_platform_fee=Sum("platform_fee"),
+            total_transactions=Count("id")
+        )
+
+        response.data["summary"] = summary
+        return response
+    
+#----USER-----
+class UserTransactionListView(generics.ListAPIView):
+    serializer_class = TransactionSerializer
+    pagination_class = StandardResultsSetPagination
+    permission_classes = [IsAuthenticated]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ["amount", "created_at", "status"]
+
+    def get_queryset(self):
+        filters_data = {"status": self.request.query_params.get("status")}
+        filters_data = {k:v for k,v in filters_data.items() if v}
+        ordering = self.request.query_params.get("ordering", "-created_at")
+
+        return PaymentRepository.list_transactions_for_user(
+            user=self.request.user, filters=filters_data, ordering=ordering
+        )
+    
+    def list(self, request, *args, **kwargs):
+        """
+        Override the default list method to include summary (total spent, total transactions, etc.)
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+
+        # Default paginated response
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        paginated_response = self.get_paginated_response(serializer.data)
+
+        # Summary aggregation
+        summary = queryset.aggregate(
+            total_spent=Sum("amount"),
+            total_transactions=Count("id"),
+            total_platform_fee=Sum("platform_fee"),
+        )
+
+        # Add summary to paginated response
+        paginated_response.data["summary"] = summary
+
+        return paginated_response
+    
+#----AGENCY-----
+class AgencyTransactionListView(generics.ListAPIView):
+    serializer_class = TransactionSerializer
+    pagination_class = StandardResultsSetPagination
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ["amount", "created_at", "status"]
+
+    def get_queryset(self):
+        agency = getattr(self.request.user, "agency_profile", None)
+        if not agency:
+            return None
+
+        filters_data = {"status": self.request.query_params.get("status")}
+        filters_data = {k: v for k, v in filters_data.items() if v}
+        ordering = self.request.query_params.get("ordering", "-created_at")
+
+        return PaymentRepository.list_transactions_for_agency(
+            agency=agency, filters=filters_data, ordering=ordering
+        )
+    
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        queryset = self.get_queryset()
+
+        #  Add summary info
+        summary = queryset.aggregate(
+            total_earned=Sum("amount"),
+            total_transactions=Count("id"),
+            total_platform_fee=Sum("platform_fee"),
+        )
+
+        response.data["summary"] = summary
+        return response

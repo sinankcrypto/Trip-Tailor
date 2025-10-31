@@ -9,7 +9,7 @@ const SidebarItems = [
   { name : 'Agencies', path: '/admin-panel/agencies'},
   { name : 'Packages', path: '/admin-panel/packages'},
   { name : 'Bookings', path: '/admin-panel/bookings' },
-  { name : 'Withdrawals', path: '/admin-panel/withdrawals'},
+  { name : 'Transactions', path: '/admin-panel/transactions'},
 ];
 
 const Layout = () => {

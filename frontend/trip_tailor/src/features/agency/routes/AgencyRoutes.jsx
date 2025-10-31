@@ -6,6 +6,8 @@ import RequireAgencyAuth from '../../../auth/RequireAgencyAuth'
 import AgencyProfile from '../pages/AgencyProfile'
 import AgencyBookingsPage from '../../bookings/pages/AgencyBookingsPage'
 import AgencyBookingDetailsPage from '../../bookings/pages/AgencyBookingDetails'
+import AgencyTransactionsPage from '../../payments/pages/AgencyTransactions'
+import AgencyPaymentSettingsPage from '../pages/PaymentSettingsPage'
 
 const AgencyRoutes = () => {
   return (
@@ -16,6 +18,8 @@ const AgencyRoutes = () => {
           <Route path="profile" element={<AgencyProfile />} />
           <Route path="bookings" element={<AgencyBookingsPage />} />
           <Route path="bookings/:id" element= {<AgencyBookingDetailsPage/>} />
+          <Route path="transactions" element={<AgencyTransactionsPage/>}/>
+          <Route path="payment-settings" element={<AgencyPaymentSettingsPage/>}/>
         </Route>
       </Route>
     </Routes>

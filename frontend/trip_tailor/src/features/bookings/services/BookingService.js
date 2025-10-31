@@ -39,3 +39,11 @@ export const cancelBooking = async (bookingId) => {
   const response = await apiClient.post(`bookings/${bookingId}/cancel/`);
   return response.data;
 };
+
+export const createCheckoutSession = async (bookingId) => {
+  const res = await apiClient.post(`/payments/create-checkout-session/`, {
+    booking_id: bookingId,
+  });
+  
+  return res.data
+}
