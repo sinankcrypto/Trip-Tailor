@@ -15,5 +15,5 @@ A Django + React travel booking platform where users can book and customize trip
 ## 📦 Setup
 1. Clone the repository  
    ```bash
-   git clone https://github.com/sinankcrypto/your-repo-name.git
+   git clone https://github.com/sinankcrypto/Trip-Tailor.git
    cd your-repo-name
