@@ -1,68 +1,123 @@
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useOtpVerification } from '../hooks/useOTPVerification'
+import { useOtpResend } from '../hooks/useOtpResend'
 import toast from 'react-hot-toast'
 import logo from '../../../../assets/authentication/logo.png'
 
 const VerifyOtp = () => {
-  const navigate = useNavigate()
-  const { state } = useLocation()
-  const [otp, setOtp] = useState('')
-  const { verifyOtp } = useOtpVerification()
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    const result = await verifyOtp(state.email, otp)
-    if (result.success) {
-      toast.success(result.message)
-      navigate('/user/login')
-    } else {
-      toast.error(result.message)
-    }
+  const navigate = useNavigate();
+  const { state } = useLocation();
+  
+  // Get email from navigation state (passed from signup/login)
+  const email = state?.email;
+  if (!email) {
+    navigate('/signup'); // safety redirect
+    return null;
   }
+
+  const [otp, setOtp] = useState('');
+  const { verifyOtp, isLoading: isVerifying } = useOtpVerification();
+
+  // Resend hook with 30-second cooldown
+  const {
+    formatTime,
+    canResend,
+    isResending,
+    resendOtp,
+  } = useOtpResend(email, 30); // ← 30 seconds!
+
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    if (otp.length !== 6) {
+      toast.error('Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    const result = await verifyOtp(email, otp);
+    if (result.success) {
+      toast.success(result.message || 'OTP verified successfully!');
+      navigate('/user/login');
+    } else {
+      toast.error(result.message);
+    }
+  };
+
+  const handleResend = async () => {
+    await resendOtp();
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 font-[Lexend] px-4">
-    {/* Top Section: Logo + Tagline */}
-    <div className="mt-12 text-center">
+      {/* Logo + Tagline */}
+      <div className="mt-12 text-center">
         <div className="flex justify-center items-center gap-2 mb-4">
-        <img src={logo} alt="Trip Tailor Logo" className="h-8" />
-        <span className="text-2xl font-semibold text-green-800 tracking-wide">
+          <img src={logo} alt="Trip Tailor Logo" className="h-8" />
+          <span className="text-2xl font-semibold text-green-800 tracking-wide">
             Trip <span className="text-green-600">Tailor</span>
-        </span>
+          </span>
         </div>
-
         <h2 className="text-2xl font-bold text-gray-800">
-        Don't just imagine paradise, <br className="hidden md:block" /> 
-        Experience it!
+          Don't just imagine paradise, <br className="hidden md:block" />
+          Experience it!
         </h2>
-    </div>
+        <p className="text-gray-600 mt-4 text-sm">
+          We've sent a 6-digit OTP to <br />
+          <span className="font-medium text-green-700">{email}</span>
+        </p>
+      </div>
 
-    {/* Form Section */}
-    <div className="flex flex-1 flex-col items-center justify-start mt-12">
-        <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm space-y-4"
-        >
-        <h2 className="text-xl font-semibold text-center">Verify OTP</h2>
-        <input
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            placeholder="Enter OTP"
-            className="border p-2 w-full rounded focus:outline-none focus:ring-2 focus:ring-green-400"
-        />
-        <button
+      {/* Form */}
+      <div className="flex flex-1 flex-col items-center justify-start mt-10">
+        <form onSubmit={handleVerify} className="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm space-y-6">
+          <h2 className="text-2xl font-bold text-center text-gray-800">Verify OTP</h2>
+
+          <div>
+            <input
+              type="text"
+              maxLength="6"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} // only numbers
+              placeholder="Enter 6-digit OTP"
+              className="w-full px-4 py-3 text-center text-2xl tracking-widest border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-4 focus:ring-green-100 transition"
+              autoFocus
+            />
+          </div>
+
+          <button
             type="submit"
-            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded w-full transition"
-        >
-            Verify
-        </button>
+            disabled={isVerifying || otp.length !== 6}
+            className={`w-full py-3 rounded-lg font-medium transition ${
+              isVerifying || otp.length !== 6
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg'
+            }`}
+          >
+            {isVerifying ? 'Verifying...' : 'Verify OTP'}
+          </button>
+
+          {/* Resend Section */}
+          <div className="text-center pt-4">
+            {canResend ? (
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={isResending}
+                className="text-green-600 hover:text-green-700 font-medium underline disabled:opacity-50"
+              >
+                {isResending ? 'Sending...' : 'Resend OTP'}
+              </button>
+            ) : (
+              <p className="text-gray-600">
+                Resend available in{' '}
+                <span className="font-bold text-green-600">{formatTime()}</span>
+              </p>
+            )}
+          </div>
         </form>
+      </div>
     </div>
-    </div>
+  );
+};
 
-
-  )
-}
-
-export default VerifyOtp
+export default VerifyOtp;

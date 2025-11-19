@@ -17,9 +17,17 @@ class CustomUser(AbstractUser):
         return self.username
     
 class EmailOTP(models.Model):
-    email = models.EmailField()
+    email = models.EmailField(db_index=True)
     otp = models.CharField(max_length=6)
+    expires_at = models.DateTimeField(db_index=True)
+    resend_attempts = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-created_at']
+
     def is_expired(self):
-        return timezone.now()> self.created_at + timedelta(minutes=10)
+        return timezone.now()> self.expires_at
+    
+    def __str__(self):
+        return f"OTP for {self.email} - {self.otp}"

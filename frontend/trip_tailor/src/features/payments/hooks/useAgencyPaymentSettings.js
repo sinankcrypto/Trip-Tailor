@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import {
   getAgencyPaymentSettings,
   connectStripe,
@@ -36,10 +37,11 @@ export const useAgencyPaymentSettings = () => {
       if (data.url) {
         window.location.href = data.url; // redirect to Stripe onboarding
       }
+      toast.success("Connected to stripe")
     } catch (err) {
       setError("Failed to connect with Stripe.");
     } finally {
-      setProcessing(false);
+      setProcessing(false);    
     }
   };
 
@@ -48,6 +50,7 @@ export const useAgencyPaymentSettings = () => {
       setProcessing(true);
       await disconnectStripe();
       await fetchSettings(); // refresh UI
+      toast.success("Disconnected from stripe")
     } catch (err) {
       setError("Failed to disconnect from Stripe.");
     } finally {

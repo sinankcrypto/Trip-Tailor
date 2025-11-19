@@ -19,17 +19,23 @@ const EditPackagePage = () => {
     images: [],
   });
 
+  const [existingImages, setExistingImages] = useState([]);
+
   const navigate = useNavigate();
 
+  // Load package details when fetched
   useEffect(() => {
     if (pkg) {
-      setForm((prev) => ({
-        ...prev,
+      setForm({
         title: pkg.title || "",
         description: pkg.description || "",
         price: pkg.price || "",
         duration: pkg.duration || "",
-      }));
+        main_image: null,
+        images: [],
+      });
+
+      setExistingImages(pkg.images || []);
     }
   }, [pkg]);
 
@@ -42,7 +48,16 @@ const EditPackagePage = () => {
   };
 
   const handleImagesChange = (e) => {
-    setForm({ ...form, images: Array.from(e.target.files) });
+    const newFiles = Array.from(e.target.files);
+
+    setForm((prevForm) => ({
+      ...prevForm,
+      images: [...prevForm.images, ...newFiles], // ✅ append instead of replace
+    }));
+  };
+
+  const handleRemoveExistingImage = (index) => {
+    setExistingImages(existingImages.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e) => {
@@ -53,18 +68,26 @@ const EditPackagePage = () => {
     formData.append("description", form.description);
     formData.append("price", form.price);
     formData.append("duration", form.duration);
+
     if (form.main_image) {
       formData.append("main_image", form.main_image);
     }
+
+    // ✅ Keep only the IDs of existing images that remain
+    existingImages.forEach((img) =>
+      formData.append("existing_image_ids", img.id)
+    );
+
+    // ✅ Add new sub images
     form.images.forEach((img) => formData.append("images", img));
 
     try {
       await handleUpdate(id, formData);
-      toast.success("Edited package")
+      toast.success("Package updated successfully!");
       navigate("/agency/my-packages");
     } catch (err) {
       console.error(err);
-      toast.error("Problem occured while editing package")
+      toast.error("Problem occurred while editing the package.");
     }
   };
 
@@ -170,13 +193,34 @@ const EditPackagePage = () => {
               Sub Images (optional, up to 4)
             </label>
 
-            {pkg?.images?.length > 0 && (
-              <div className="flex gap-2 mb-2">
-                {pkg.images.map((img, idx) => (
+            {existingImages.length > 0 && (
+              <div className="flex flex-wrap gap-3 mb-3">
+                {existingImages.map((img, idx) => (
+                  <div key={idx} className="relative">
+                    <img
+                      src={img.image_url}
+                      alt={`Sub ${idx}`}
+                      className="h-20 w-20 object-cover rounded"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveExistingImage(idx)}
+                      className="absolute top-0 right-0 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-bl"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {form.images.length > 0 && (
+              <div className="flex flex-wrap gap-3 mt-3">
+                {form.images.map((img, idx) => (
                   <img
                     key={idx}
-                    src={img.image_url}
-                    alt={`Sub ${idx}`}
+                    src={URL.createObjectURL(img)}
+                    alt="preview"
                     className="h-20 w-20 object-cover rounded"
                   />
                 ))}

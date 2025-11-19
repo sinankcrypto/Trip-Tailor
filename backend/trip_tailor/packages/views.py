@@ -13,6 +13,7 @@ from .repositories.package_repository import PackageRepository
 from .filters import PackageFilter
 from agency_app.permissions import IsVerifiedAgency, IsAdminOrVerifiedAgency
 
+from core.pagination import StandardResultsSetPagination
 
 # Create your views here.
 
@@ -42,10 +43,14 @@ class PackageUpdateView(generics.UpdateAPIView):
     
     def perform_update(self, serializer):
         package = self.get_object()
+
+        images = self.request.FILES.getlist("images")
+        existing_image_ids = self.request.data.getlist("existing_image_ids")
         package_repo.update_package(
             package,
             serializer.validated_data,
-            images = self.request.FILES.getlist("images")
+            images=images,
+            existing_image_ids=existing_image_ids, 
         )
 
         serializer.instance = package
@@ -97,13 +102,21 @@ class PackageDetailView(generics.RetrieveAPIView):
     
 # User Side
 
-class PackageListView(APIView):
-    def get(self, request):
-        packages = package_repo.get_all_listed()
-        serializer = PackageSerializer(packages, many=True)
+class PackageListView(generics.ListAPIView):
+    queryset = package_repo.get_all_listed()
+    serializer_class = PackageSerializer
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
 
-        return Response(serializer.data, status= status.HTTP_200_OK)
+    filterset_fields = {
+        "agency": ["exact"],
+        "price": ["gte", "lte"],
+    }
     
+    ordering_fields = ["price", "created_at"]
+    ordering = ["-created_at"]
+    search_fields = ["title", "description"]
+
 class LatestPackagesView(generics.ListAPIView):
     serializer_class = PackageSerializer
 

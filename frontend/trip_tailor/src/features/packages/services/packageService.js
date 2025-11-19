@@ -33,10 +33,10 @@ export const deletePackage = async (id) => {
     return res.data;
 };
 
-export const getPackages = async () => {
-    const res = await apiClient.get("/packages/")
-    return res.data
-}
+export const getPackages = async (params = {}) => {
+  const res = await apiClient.get("/packages/", { params });
+  return res.data;
+};
 
 export const getLatestPackages = async () => {
     const res = await apiClient.get("/packages/latest/")

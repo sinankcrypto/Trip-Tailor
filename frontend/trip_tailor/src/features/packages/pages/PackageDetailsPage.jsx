@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useGetOnePackage } from "../hooks/useGetOnePackage";
-import { Star } from "lucide-react"; // ⭐ For static star icons
+import { Star, X } from "lucide-react";
 
 const PackageDetailPage = () => {
   const { id } = useParams();
@@ -8,6 +9,7 @@ const PackageDetailPage = () => {
   const { pkg, loading, error } = useGetOnePackage(id);
 
   const packagedata = pkg;
+  const [zoomedImage, setZoomedImage] = useState(null);
 
   if (loading) {
     return (
@@ -26,28 +28,38 @@ const PackageDetailPage = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10">
+    <div className="max-w-6xl mx-auto px-6 py-10 font-[Plus Jakarta Sans]">
       <div className="bg-white shadow-lg rounded-2xl overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-2">
           {/* Left Section - Images */}
           <div className="p-6 flex flex-col items-center">
             {packagedata.main_image && (
-              <img
-                src={packagedata.main_image}
-                alt={packagedata.title}
-                className="w-full h-80 object-cover rounded-xl shadow-md mb-6"
-              />
+              <div
+                className="relative group cursor-zoom-in"
+                onClick={() => setZoomedImage(packagedata.main_image)}
+              >
+                <img
+                  src={packagedata.main_image}
+                  alt={packagedata.title}
+                  className="w-full h-80 object-cover rounded-xl shadow-md transition-transform duration-300 ease-in-out group-hover:scale-105"
+                />
+              </div>
             )}
 
             {packagedata.images && packagedata.images.length > 0 && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full mt-4">
                 {packagedata.images.map((img, idx) => (
-                  <img
+                  <div
                     key={idx}
-                    src={img.image_url}
-                    alt={`Sub image ${idx + 1}`}
-                    className="w-full h-32 object-cover rounded-lg shadow"
-                  />
+                    className="relative group cursor-zoom-in"
+                    onClick={() => setZoomedImage(img.image_url)}
+                  >
+                    <img
+                      src={img.image_url}
+                      alt={`Sub image ${idx + 1}`}
+                      className="w-full h-32 object-cover rounded-lg shadow transition-transform duration-300 ease-in-out group-hover:scale-105"
+                    />
+                  </div>
                 ))}
               </div>
             )}
@@ -55,7 +67,10 @@ const PackageDetailPage = () => {
 
           {/* Right Section - Package Details */}
           <div className="p-8 flex flex-col justify-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-3">
+            <h1
+              className="text-3xl font-bold text-gray-900 mb-3"
+              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            >
               {packagedata.title}
             </h1>
 
@@ -118,7 +133,9 @@ const PackageDetailPage = () => {
               <h2 className="text-xl font-bold text-gray-900 mb-1">
                 {packagedata.agency.agency_name}
               </h2>
-              <p className="text-gray-700 mb-2">{packagedata.agency.description}</p>
+              <p className="text-gray-700 mb-2">
+                {packagedata.agency.description}
+              </p>
               <p className="text-gray-600 text-sm">
                 📍 {packagedata.agency.address}
               </p>
@@ -129,6 +146,26 @@ const PackageDetailPage = () => {
           </div>
         )}
       </div>
+
+      {/* 🔍 Zoom Modal */}
+      {zoomedImage && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center z-50"
+          onClick={() => setZoomedImage(null)}
+        >
+          <button
+            className="absolute top-6 right-6 text-white text-2xl"
+            onClick={() => setZoomedImage(null)}
+          >
+            <X size={28} />
+          </button>
+          <img
+            src={zoomedImage}
+            alt="Zoomed"
+            className="max-w-[90%] max-h-[85%] rounded-xl shadow-lg object-contain"
+          />
+        </div>
+      )}
     </div>
   );
 };

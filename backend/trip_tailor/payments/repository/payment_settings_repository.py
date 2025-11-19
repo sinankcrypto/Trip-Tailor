@@ -66,5 +66,5 @@ class PaymentSettingsRepository:
         Remove the stripe_account_id from the agency. Does NOT delete Stripe account.
         """
         agency.stripe_account_id = None
-        agency.save(updated_fields=["stripe_account_id"])
+        agency.save(update_fields=["stripe_account_id"])
         return True

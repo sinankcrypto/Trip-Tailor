@@ -128,6 +128,7 @@ class CreateCheckoutSessionView(APIView):
             return Response({"error": "booking_id is required"}, status=400)
         booking = booking_repo.get_by_id(booking_id)
         if not booking:
+            logger.error("Booking not found")
             return Response({"error": "Booking not found"}, status=404)
         
         user = request.user
@@ -140,6 +141,7 @@ class CreateCheckoutSessionView(APIView):
             )
             return Response({"checkout_url":session_url})
         except Exception as e:
+            logger.error({"error":str(e)})
             return Response({"error":str(e)}, status=400)
     
 class AgencyPaymentSettingsView(APIView):
@@ -175,7 +177,7 @@ class AgencyConnectStripeView(APIView):
         #create account if doesn't exist
         stripe_account_id = repo.create_express_account_for_agency(agency, email=request.user.email)
         refersh_url = f"{settings.DOMAIN.rstrip('/')}/agency/payment-settings" 
-        return_url = f"{settings.DOMAIN.rstrip('/')}/agency/payment-settings/success"
+        return_url = f"{settings.DOMAIN.rstrip('/')}/agency/payment-settings/"
 
         account_link_url = repo.create_account_link(stripe_account_id, refersh_url, return_url)
         return Response({"url":account_link_url, "stripe_account_id":stripe_account_id})
@@ -301,10 +303,16 @@ class AgencyTransactionListView(generics.ListAPIView):
 
         #  Add summary info
         summary = queryset.aggregate(
-            total_earned=Sum("amount"),
+            total_earned=Sum("amount")-Sum("platform_fee"),
             total_transactions=Count("id"),
             total_platform_fee=Sum("platform_fee"),
         )
 
-        response.data["summary"] = summary
-        return response
+        data = response.data
+
+        if isinstance(data, dict) and "results" in data:
+            data["summary"] = summary
+        else:
+            data = {"results": data, "summary": summary}
+
+        return Response(data)

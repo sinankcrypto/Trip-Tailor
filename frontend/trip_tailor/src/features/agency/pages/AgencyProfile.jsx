@@ -163,7 +163,7 @@ const AgencyProfile = () => {
           </div>
           <div>
             <label className="block mb-1 text-sm font-medium text-gray-700">
-              License Document
+              License Document (image)
             </label>
             <input
               type="file"
@@ -176,9 +176,14 @@ const AgencyProfile = () => {
 
           <button
             type="submit"
-            className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md font-medium"
+            className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md font-medium mr-3"
           >
             Save Profile
+          </button>
+          <button
+            onClick={()=> setEditing(false)}
+            className="bg-gray-200 hover:bg-gray-300 py-2 px-4 rounded-md font-medium">
+            Cancel
           </button>
         </form>
       ) : (

@@ -42,7 +42,7 @@ export const cancelBooking = async (bookingId) => {
 
 export const createCheckoutSession = async (bookingId) => {
   const res = await apiClient.post(`/payments/create-checkout-session/`, {
-    booking_id: bookingId,
+    "booking_id": bookingId,
   });
   
   return res.data

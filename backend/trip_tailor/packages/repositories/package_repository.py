@@ -26,7 +26,7 @@ class PackageRepository:
 
         return package
     
-    def update_package(self, package: Package, data: dict, images: list = None):
+    def update_package(self, package: Package, data: dict, images: list = None, existing_image_ids: list = None):
         package.title = data.get("title", package.title)
         package.price = data.get("price", package.price)
         package.duration = data.get("duration", package.duration)
@@ -36,6 +36,13 @@ class PackageRepository:
             package.main_image = CloudinaryService.upload_image(data["main_image"])
 
         package.save()
+
+        if existing_image_ids is not None:
+            existing_image_ids = [int(i) for i in existing_image_ids if i.isdigit()]
+
+            PackageImage.objects.filter(package=package).exclude(
+                id__in=existing_image_ids
+            ).delete()
 
         if images:
             for img in images:
