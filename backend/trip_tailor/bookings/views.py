@@ -13,6 +13,8 @@ from .repositories.booking_repository import BookingRepository
 from agency_app.permissions import IsVerifiedAgency
 
 from core.tasks import send_booking_confirmation_email_task
+from datetime import timedelta
+from django.utils import timezone
 
 import logging
 
@@ -105,6 +107,13 @@ class BookingCancelView(APIView):
                 booking = booking_repo.get_by_id_for_update(pk)
                 if not booking:
                     return Response({"detail": "Booking not found"}, status= status.HTTP_404_NOT_FOUND)
+                
+                cutoff_date = timezone.now().date() + timedelta(days=1)
+                if booking.date < cutoff_date:
+                    return Response(
+                        {"detail": "Cancellation is only allowed at least 24 hours before the booking date. "},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
                 
                 user = request.user
 
