@@ -1,26 +1,45 @@
-from enum import Enum
+from enum import StrEnum
 
-class PaymentMethod(str, Enum):
+def to_choices(enum_cls):
+    return [(item.value, item.value.replace("_", " ").title()) for item in enum_cls]
+
+
+class PaymentMethod(StrEnum):
     ON_HAND = "ON_HAND"
     ONLINE = "ONLINE"
 
-class PaymentStatus(str, Enum):
+    @classmethod
+    def choices(cls):
+        return to_choices(cls)
+
+
+class PaymentStatus(StrEnum):
     PENDING = "PENDING"
     PAID = "PAID"
     FAILED = "FAILED"
     REFUNDED = "REFUNDED"
 
-class BookingStatus(str, Enum):
+    @classmethod
+    def choices(cls):
+        return to_choices(cls)
+
+
+class BookingStatus(StrEnum):
     ACTIVE = "ACTIVE"
     CANCELLED = "CANCELLED"
     COMPLETED = "COMPLETED"
 
-class TransactionStatus(str, Enum):
+    @classmethod
+    def choices(cls):
+        return to_choices(cls)
+
+
+class TransactionStatus(StrEnum):
     PENDING = "pending"
     COMPLETED = "completed"
     FAILED = "failed"
     CANCELLED = "cancelled"
 
-def choices(enum_cls):
-    """Convert Enum into Django choices tuple."""
-    return [(item.value, item.name.title()) for item in enum_cls]
+    @classmethod
+    def choices(cls):
+        return to_choices(cls)

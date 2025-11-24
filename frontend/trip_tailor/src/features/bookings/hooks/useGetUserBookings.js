@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getUserBookings } from "../services/BookingService";
+import { getBookings } from "../services/BookingService";
 
 
 export const useGetUserBookings = (initialParams = {}) => {
@@ -18,7 +18,7 @@ export const useGetUserBookings = (initialParams = {}) => {
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      const data = await getUserBookings(params);
+      const data = await getBookings(params);
       setBookings(data.results);
       setPagination({
         count: data.count,

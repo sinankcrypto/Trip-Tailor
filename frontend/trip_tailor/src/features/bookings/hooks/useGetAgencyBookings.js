@@ -1,6 +1,6 @@
 // src/features/bookings/hooks/useGetAgencyBookings.js
 import { useEffect, useState, useCallback } from "react";
-import { getAgencyBookings } from "../services/BookingService";
+import { getBookings } from "../services/BookingService";
 
 export const useGetAgencyBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -10,7 +10,7 @@ export const useGetAgencyBookings = () => {
   const fetchBookings = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getAgencyBookings();
+      const data = await getBookings();
       setBookings(data.results);
       setError(null);
     } catch (err) {

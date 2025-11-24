@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Booking
+from core.constants import BookingStatus, PaymentStatus
 
 class BookingSerializer(serializers.ModelSerializer):
     package_title = serializers.CharField(source="package.title", read_only=True)
@@ -23,34 +24,81 @@ class BookingSerializer(serializers.ModelSerializer):
         members = validated_data["no_of_members"]
 
         validated_data["amount"] = package.price * members
-        validated_data["payment_status"] = Booking.PAYMENT_PENDING
+        validated_data["payment_status"] = PaymentStatus.PENDING
         validated_data["agency"] = package.agency
         validated_data["user"] = self.context["request"].user
 
         return super().create(validated_data)
     
-class BookingStatusUpdateSerializer(serializers.ModelSerializer):
-    payment_status = serializers.ChoiceField(choices=Booking.PAYMENT_STATUS_CHOICES, required=True)
+class PaymentStatusUpdateSerializer(serializers.ModelSerializer):
+    payment_status = serializers.ChoiceField(choices=PaymentStatus.choices(), required=True)
 
     class Meta:
         model = Booking
         fields = ["payment_status"]
+    
+    def validate_payment_status(self, value):
+        booking = self.instance
+        current = booking.payment_status
 
-class UserBookingSerializer(serializers.ModelSerializer):
-    package_title = serializers.CharField(source="package.title", read_only=True)
-    agency_name = serializers.CharField(source="agency.name", read_only=True)
+        # Define allowed transitions
+        allowed = {
+            PaymentStatus.PENDING: {PaymentStatus.PAID, PaymentStatus.FAILED},
+            PaymentStatus.PAID: {PaymentStatus.REFUNDED},
+            PaymentStatus.FAILED: {PaymentStatus.PENDING, PaymentStatus.PAID},
+            PaymentStatus.REFUNDED: set(),  # no further changes
+        }
+
+        if value not in allowed.get(current, set()):
+            raise serializers.ValidationError(
+                f"Cannot change payment status from {current} to {value}. "
+                f"Allowed: {', '.join(allowed.get(current, [])) or 'none'}"
+            )
+        return value
+
+class UserBookingSerializer(BookingSerializer):
+    class Meta(BookingSerializer.Meta):
+        fields = [
+            "id", "package_title", "package_image", "package_duration",
+            "agency_name", "date", "no_of_members", "amount",
+            "payment_method", "payment_status", "booking_status", "created_at"
+        ]
+
+class BookingStatusUpdateSerializer(serializers.ModelSerializer):
+    """Only for updating booking status"""
+    booking_status = serializers.ChoiceField(
+        choices=BookingStatus.choices(),
+        required=True,
+        help_text="New booking Lifecylce status"
+    )
 
     class Meta:
-        model = Booking
-        fields = [
-            "id",
-            "package_title",
-            "agency_name",
-            "date",
-            "no_of_members",
-            "amount",
-            "payment_status",
-            "payment_method",
-            "booking_status",
-            "created_at",
-        ]
+        model=Booking
+        fields = ["booking_status"]
+
+    def validate_booking_status(self, value: BookingStatus) -> BookingStatus:
+        current = self.instance.booking_status
+        user = self.context["request"].user
+
+        allowed = {
+            BookingStatus.ACTIVE:{
+                BookingStatus.CANCELLED,
+                BookingStatus.COMPLETED,
+            },
+            BookingStatus.CANCELLED:{
+                BookingStatus.ACTIVE
+            },
+            BookingStatus.COMPLETED : set(),
+        }
+
+        if value not in allowed.get(current, set()):
+            raise serializers.ValidationError(
+                f"Cannot change booking status from {current} to {value}. "
+                f"Allowed: {', '.join(allowed.get(current, [])) or 'none'}"
+            )
+        
+        if value == BookingStatus.COMPLETED:
+            if not (user.is_staff or hasattr(user, "agency_profile")):
+                raise serializers.ValidationError("Only staff or agency can mark as completed")
+            
+        return value

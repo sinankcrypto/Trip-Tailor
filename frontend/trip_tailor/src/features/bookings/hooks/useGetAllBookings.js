@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useEffect } from "react";
-import { getAllBookings } from "../services/BookingService";
+import { getBookings } from "../services/BookingService";
 
 
 export const useGetAllBookings = (params = {}) => {
@@ -11,7 +11,7 @@ export const useGetAllBookings = (params = {}) => {
     const fetchBookings = async () => {
     setLoading(true);
     try {
-      const response = await getAllBookings(params); 
+      const response = await getBookings(params); 
       setBookings(response.results || response); 
       setError(null);
     } catch (err) {
