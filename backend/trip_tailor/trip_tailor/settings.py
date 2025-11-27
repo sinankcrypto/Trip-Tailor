@@ -64,6 +64,8 @@ INSTALLED_APPS = [
     'dj_rest_auth',
     'dj_rest_auth.registration',
 
+    'channels',
+
     'user_auth',
     'admin_app',
     'agency_app',
@@ -71,6 +73,7 @@ INSTALLED_APPS = [
     'packages',
     'bookings',
     'payments',
+    'chat',
 ]
 
 MIDDLEWARE = [
@@ -104,7 +107,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'trip_tailor.wsgi.application'
+ASGI_APPLICATION = "trip_tailor.asgi.application"
 
 
 # Database
@@ -301,6 +304,15 @@ LOGGING = {
             "level": "DEBUG",
             "handlers": ["console"],
             "propagate": False,
+        },
+    },
+}
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("redis", 6379)],
         },
     },
 }
