@@ -13,6 +13,7 @@ export const useUserLogin = () => {
         setLoading(true)
         try{
             const res = await loginUser(credentials)
+            localStorage.setItem("access_token", res.access)
 
             const user = res.user
             setUser(res.user)

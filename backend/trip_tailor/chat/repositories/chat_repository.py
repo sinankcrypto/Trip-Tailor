@@ -4,6 +4,8 @@ from django.db import transaction
 from typing import Optional
 from ..models import ChatSession, Message
 from django.contrib.auth import get_user_model
+from django.db.models import Q, Max, Count
+from django.shortcuts import get_object_or_404
 
 User = get_user_model()
 
@@ -49,10 +51,8 @@ class ChatRepository:
     @staticmethod
     def get_recent_messages(session: ChatSession, limit: int=50):
         return list(
-            session.message
-            .select_related("sender")
-            .order_by("-timestamp")[:limit]
-            .reverse()
+            session.messages.select_related("sender")
+            .order_by("timestamp")[:limit]
         )
     
     @staticmethod
@@ -63,4 +63,37 @@ class ChatRepository:
             logger.info("Marked %s messages as read in session %s by %s", count, session.id, reader)
         return count
     
+    @staticmethod
+    def get_user_chat_sessions(user):
+        return ChatSession.objects.filter(user=user).annotate(
+                last_message_time=Max("messages__timestamp"),
+                unread_count=Count(
+                    "messages",
+                    filter=Q(messages__is_read=False) & ~Q(messages__sender=user)
+                )
+            ).order_by("-last_message_time")
     
+    @staticmethod
+    def get_agency_chat_sessions(agency_profile):
+        return ChatSession.objects.filter(package__agency=agency_profile)\
+            .annotate(
+                last_message_time=Max("messages__timestamp"),
+                unread_count=Count(
+                    "messages",
+                    filter=Q(messages__is_read=False) & ~Q(messages__sender=agency_profile.user)
+                )
+            )\
+            .order_by("-last_message_time")
+
+    @staticmethod
+    def get_session_for_user_or_agency(package_id, user):
+        """
+        Get chat session for a package if user is either:
+        - The customer (user)
+        - OR the agency owner
+        """
+        return get_object_or_404(
+            ChatSession,
+            package_id,
+            Q(user=user) | Q(package__agency=user.agency_profile)
+        )

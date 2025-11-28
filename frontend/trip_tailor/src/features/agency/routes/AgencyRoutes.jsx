@@ -8,6 +8,8 @@ import AgencyBookingsPage from '../../bookings/pages/AgencyBookingsPage'
 import AgencyBookingDetailsPage from '../../bookings/pages/AgencyBookingDetails'
 import AgencyTransactionsPage from '../../payments/pages/AgencyTransactions'
 import AgencyPaymentSettingsPage from '../pages/PaymentSettingsPage'
+import AgencyChatListPage from '../../chat/pages/AgencyMessagesPage'
+import AgencyChatPage from '../../chat/pages/AgencyChatPage'
 
 const AgencyRoutes = () => {
   return (
@@ -20,6 +22,8 @@ const AgencyRoutes = () => {
           <Route path="bookings/:id" element= {<AgencyBookingDetailsPage/>} />
           <Route path="transactions" element={<AgencyTransactionsPage/>}/>
           <Route path="payment-settings" element={<AgencyPaymentSettingsPage/>}/>
+          <Route path="chats" element={<AgencyChatListPage />} />
+          <Route path="chat/:packageId" element={<AgencyChatPage />} />
         </Route>
       </Route>
     </Routes>

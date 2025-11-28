@@ -16,6 +16,8 @@ import PackageDetailPage from "../../packages/pages/PackageDetailsPage";
 import UserBookingsPage from "../../bookings/pages/UserBookings";
 import UserBookingDetailsPage from "../../bookings/pages/UserBookingDetails";
 import UserTransactionsPage from "../../payments/pages/UserTransactions";
+import UserChatListPage from "../../chat/pages/UserMessagesPage";
+import UserChatPage from "../../chat/pages/UserChatPage"
 
 const UserRoutes = () => {
   return (
@@ -34,6 +36,8 @@ const UserRoutes = () => {
           <Route path="bookings" element= {<UserBookingsPage/>} />
           <Route path="bookings/:id" element= {<UserBookingDetailsPage/>}/>
           <Route path="transactions" element= {<UserTransactionsPage/>}/>
+          <Route path="chats" element={<UserChatListPage />} />
+          <Route path="chat/:packageId" element={<UserChatPage/>} />
         </Route>
       </Route>
       <Route path="/user" element={<UserLoginLayout/>}>
