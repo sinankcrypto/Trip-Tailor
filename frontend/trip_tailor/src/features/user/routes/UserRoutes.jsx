@@ -36,8 +36,8 @@ const UserRoutes = () => {
           <Route path="bookings" element= {<UserBookingsPage/>} />
           <Route path="bookings/:id" element= {<UserBookingDetailsPage/>}/>
           <Route path="transactions" element= {<UserTransactionsPage/>}/>
-          <Route path="chats" element={<UserChatListPage />} />
-          <Route path="chat/:packageId" element={<UserChatPage/>} />
+          <Route path="messages" element={<UserChatListPage />} />
+          <Route path="chat/:chatId" element={<UserChatPage/>} />
         </Route>
       </Route>
       <Route path="/user" element={<UserLoginLayout/>}>

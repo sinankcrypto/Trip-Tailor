@@ -11,15 +11,20 @@ export const getAgencyChats = async () => {
 };
 
 // Fetch messages for a chat (package ID)
-export const getChatMessages = async (packageId) => {
-  const res = await apiClient.get(`/chat/messages/${packageId}/`);
+export const  getChatMessages = async (chatId) => {
+  const res = await apiClient.get(`/chat/messages/${chatId}/`);
   return res.data;
 };
 
 // Send message
-export const sendMessage = async (packageId, content) => {
-  const res = await apiClient.post(`/chat/messages/${packageId}/`, {
-    content,
+export const sendMessage = async (chatId, message) => {
+  const res = await apiClient.post(`/chat/messages/${chatId}/`, {
+    message,
   });
   return res.data;
 };
+
+export const createOrGetChatSession = async (packageId) => {
+  const res = await apiClient.post(`/chat/package/${packageId}/`);
+  return res.data;
+}

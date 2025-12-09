@@ -4,12 +4,11 @@ import { useSendMessage } from "../hooks/useSendMessage";
 import { useGetChatMessages } from "../hooks/useGetChatMessages";
 
 export default function UserChatPage() {
-  const { packageId } = useParams();
-  console.log("id", {packageId})
+  const { chatId } = useParams();
 
   return (
     <ChatLayout
-      chatId={packageId}
+      chatId={chatId}
       title="Chat with Agency"
       useFetchMessages={useGetChatMessages}
       useSendMessage={useSendMessage}

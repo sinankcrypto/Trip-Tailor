@@ -17,24 +17,27 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
             await self.close(code=4001)
             return 
 
-        self.package_id = int(self.scope["url_route"]["kwargs"]["package_id"].rstrip("/"))
-        self.room_group_name = f"chat_user_{self.user.id}_package_{self.package_id}"
+        self.session_id = int(self.scope["url_route"]["kwargs"]["session_id"])
+
+        self.session = await self.get_session(self.session_id)
+
+        self.room_group_name = f"chat_session_{self.session.id}"
 
         #join private room
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
 
         #load message history
-        messages = await self.get_message_history()
-        for msg in messages:
-            await self.send(text_data=json.dumps({
-                "type": "history",
-                "id": msg.id,
-                "message": msg.content,
-                "sender": msg.sender.username,
-                "is_me": msg.me == self.user,
-                "timestamp": msg.timestamp.isoformat(),
-            }))
+        # messages = await self.get_message_history()
+        # for msg in messages:
+        #     await self.send(text_data=json.dumps({
+        #         "type": "history",
+        #         "id": msg.id,
+        #         "message": msg.content,
+        #         "sender": msg.sender.username,
+        #         "is_me": msg.sender == self.user,
+        #         "timestamp": msg.timestamp.isoformat(),
+        #     }))
 
     async def disconnect(self, close_code):
         if hasattr(self, "room_group_name"):
@@ -66,7 +69,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
 
     async def chat_message(self, event):
         await self.send(text_data=json.dumps({
-            "type": "message",
+            "type": "chat_message",
             "id": event["id"],
             "message": event["message"],
             "sender": event["sender"],
@@ -76,26 +79,27 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
         }))
 
 
-    @database_sync_to_async
-    def get_message_history(self):
-        try:
-            session = ChatRepository.get_or_create_session(
-                package_id=self.package_id,
-                user=self.user
-            )
-            return ChatRepository.get_recent_messages(session, limit=100)
-        except Exception as e:
-            logger.error("Failed to load histroy: %s", e)
-            return []
+    # @database_sync_to_async
+    # def get_message_history(self):
+    #     try:
+    #         session = ChatRepository.get_or_create_session(
+    #             package_id=self.package_id,
+    #             user=self.user
+    #         )
+    #         return ChatRepository.get_recent_messages(session, limit=100)
+    #     except Exception as e:
+    #         logger.error("Failed to load history: %s", e)
+    #         return []
         
     @database_sync_to_async
     def save_message(self, content: str):
-        session = ChatRepository.get_or_create_session(
-            package_id=self.package_id,
-            user=self.user
-        )
+        session = ChatRepository.get_session_by_id(self.session_id)
         return ChatRepository.create_message(
             session=session,
             sender=self.user,
             content=content
         )
+    
+    @database_sync_to_async
+    def get_session(self, session_id):
+        return ChatRepository.get_session_by_id(session_id)

@@ -39,6 +39,13 @@ const EditPackagePage = () => {
     }
   }, [pkg]);
 
+  const handleRemoveNewImage = (index) => {
+    setForm((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
+  };
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -217,12 +224,20 @@ const EditPackagePage = () => {
             {form.images.length > 0 && (
               <div className="flex flex-wrap gap-3 mt-3">
                 {form.images.map((img, idx) => (
-                  <img
-                    key={idx}
-                    src={URL.createObjectURL(img)}
-                    alt="preview"
-                    className="h-20 w-20 object-cover rounded"
-                  />
+                  <div key={idx} className="relative">
+                    <img
+                      src={URL.createObjectURL(img)}
+                      alt="preview"
+                      className="h-20 w-20 object-cover rounded"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveNewImage(idx)}
+                      className="absolute top-0 right-0 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-bl"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 ))}
               </div>
             )}

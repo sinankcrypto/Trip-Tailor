@@ -22,8 +22,8 @@ const AgencyRoutes = () => {
           <Route path="bookings/:id" element= {<AgencyBookingDetailsPage/>} />
           <Route path="transactions" element={<AgencyTransactionsPage/>}/>
           <Route path="payment-settings" element={<AgencyPaymentSettingsPage/>}/>
-          <Route path="chats" element={<AgencyChatListPage />} />
-          <Route path="chat/:packageId" element={<AgencyChatPage />} />
+          <Route path="messages" element={<AgencyChatListPage />} />
+          <Route path="chat/:chatId" element={<AgencyChatPage />} />
         </Route>
       </Route>
     </Routes>

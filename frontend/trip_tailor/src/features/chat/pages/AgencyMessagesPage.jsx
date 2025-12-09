@@ -14,7 +14,7 @@ export default function AgencyChatListPage() {
         {chats.map((chat, index) => (
           <Link
             key={index}
-            to={`/agency/chat/${chat.user_id}`}
+            to={`/agency/chat/${chat.id}`}
             className="p-4 bg-white shadow rounded-md flex justify-between"
           >
             <div>

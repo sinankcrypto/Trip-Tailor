@@ -9,33 +9,69 @@ export default function ChatLayout({
   useFetchMessages,
   useSendMessage,
 }) {
-  const { messages, loading, refetch } = useFetchMessages(chatId);
-  const { send, sending } = useSendMessage(chatId);
+  const { messages: initialMessages, loading, refetch } = useFetchMessages(chatId);
+  
 
+  const [messages, setMessages] = useState([])
   const [newMsg, setNewMsg] = useState("");
   const socketRef = useRef(null);
+  const { send, sending } = useSendMessage(chatId, socketRef);
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    setMessages([]);
+  }, [chatId]);
+
+  useEffect(() => {
+    if (initialMessages) {
+      setMessages(initialMessages);
+    }
+  }, [initialMessages])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // WebSocket — Real-time + JWT from cookie
+  // WebSocket — Real-time
   useEffect(() => {
     if (!chatId || !WS_URL) return;
 
-    // Get token from cookie
-    const token = localStorage.getItem("access_token");
-
-    if (!token) {
-      console.error("No JWT token — user not logged in");
-      return;
-    }
-
-    const url = `${WS_URL}${chatId}/?token=${token}`;
+    const url = `${WS_URL}${chatId}/`;
     socketRef.current = new WebSocket(url);
 
     socketRef.current.onopen = () => console.log("Real-time chat connected");
+
+    socketRef.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+
+      // if (data.type === "history") {
+      //   setMessages(prev => {
+      //     if (prev.some(m => m.id === data.id)) return prev;
+      //     return [...prev, {
+      //       id: data.id,
+      //       content: data.message,
+      //       sender: data.sender,
+      //       sender_id: data.sender_id,
+      //       is_me: data.is_me,
+      //       timestamp: data.timestamp,
+      //     }];
+      //   });
+      //   return;
+      // }
+
+      if (data.type === "chat_message") {
+        setMessages(prev => [...prev, {
+          id: data.id,
+          content: data.message,
+          sender: data.sender,
+          sender_id: data.sender_id,
+          is_me: data.is_me,
+          timestamp: data.timestamp,
+        }]);
+        return;
+      }
+    };
+
     socketRef.current.onclose = () => console.log("Chat disconnected");
     socketRef.current.onerror = (e) => console.error("WS Error:", e);
 
@@ -60,18 +96,15 @@ export default function ChatLayout({
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${msg.is_self ? "justify-end" : "justify-start"}`}
+            className={`flex ${msg.is_me ? "justify-end" : "justify-start"}`}
           >
             <div
               className={`max-w-xs px-5 py-3 rounded-2xl shadow-md ${
-                msg.is_self
+                msg.is_me
                   ? "bg-green-600 text-white"
                   : "bg-white text-gray-900 border"
               }`}
             >
-              <p className="text-sm font-medium mb-1">
-                {msg.is_self ? "You" : msg.sender}
-              </p>
               <p>{msg.content}</p>
               <p className="text-xs mt-2 opacity-70">
                 {new Date(msg.timestamp).toLocaleTimeString()}

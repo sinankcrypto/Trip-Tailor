@@ -24,6 +24,7 @@ class UserChatListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChatSession
         fields = [
+            "id",
             "package_id",
             "agency_name",
             "package_title",
@@ -62,7 +63,7 @@ class AgencyChatListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ChatSession
-        fields = ["user_id", "user_name", "package_title", "last_message", "time_ago", "unread"]
+        fields = ["id", "user_id", "user_name", "package_title", "last_message", "time_ago", "unread"]
 
     def get_last_message(self, obj):
         msg = obj.messages.order_by("-timestamp").first()

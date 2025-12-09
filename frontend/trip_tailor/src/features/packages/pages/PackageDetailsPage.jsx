@@ -2,11 +2,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useGetOnePackage } from "../hooks/useGetOnePackage";
 import { Star, X } from "lucide-react";
+import { useCreateChatSession } from "../../chat/hooks/useCreateChatSession";
 
 const PackageDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { pkg, loading, error } = useGetOnePackage(id);
+
+  const { createSession, loading: creating } = useCreateChatSession()
 
   const packagedata = pkg;
   const [zoomedImage, setZoomedImage] = useState(null);
@@ -147,9 +150,13 @@ const PackageDetailPage = () => {
               </div>
             </div>
 
-            {/* CHAT WITH US BUTTON — BEAUTIFUL & FUNCTIONAL */}
+            {/* CHAT WITH US BUTTON */}
             <button
-              onClick={() => navigate(`/user/chat/${id}`)}
+              onClick={async () =>{
+                const res = await createSession(id)
+                const sessionId = res.session_id
+                navigate(`/user/chat/${sessionId}`)
+              }}
               className="flex items-center gap-3 px-6 py-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl shadow-lg transition-all transform hover:scale-105 active:scale-100"
             >
               <svg

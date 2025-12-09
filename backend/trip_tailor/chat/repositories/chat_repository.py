@@ -97,3 +97,13 @@ class ChatRepository:
             package_id,
             Q(user=user) | Q(package__agency=user.agency_profile)
         )
+    
+    @staticmethod
+    def get_session_by_id(id):
+        """
+        get session by session id
+        """
+        return get_object_or_404(
+            ChatSession,
+            pk=id
+        )

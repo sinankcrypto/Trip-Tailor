@@ -37,6 +37,12 @@ const AgencyLayout = () => {
             Packages
           </Link>
           <Link
+            to="/agency/messages"
+            className={`block px-4 py-2 rounded-md hover:bg-green-50 hover:text-green-700 transition ${isActive('/agency/messages')}`}
+          >
+            Messages
+          </Link>
+          <Link
             to="/agency/bookings"
             className={`block px-4 py-2 rounded-md hover:bg-green-50 hover:text-green-700 transition ${isActive('/agency/bookings')}`}
           >

@@ -75,8 +75,17 @@ const CreatePackagePage = () => {
 
   const handleImagesChange = (e) => {
     const files = Array.from(e.target.files).slice(0, 4);
-    setForm({ ...form, images: files });
+    setForm((prevForm) => ({
+      ...prevForm, images: [...prevForm.images, ...files ]
+    }));
   };
+
+  const handleRemoveNewImage = (index) => {
+    setForm((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, id) => id!==index),
+    }))
+  }
 
   const getCroppedImage = () => {
     if (!completedCrop?.width || !completedCrop?.height || !imgRef.current) return;
@@ -209,7 +218,7 @@ const CreatePackagePage = () => {
             name="main_image"
             accept="image/*"
             onChange={handleMainImageChange}
-            className="mb-4"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-green-100 file:text-green-700 hover:file:bg-green-200"
           />
 
           {previewUrl && (
@@ -236,24 +245,37 @@ const CreatePackagePage = () => {
         {/* Sub Images */}
         <div>
           <label className="block font-medium mb-2">Sub Images (up to 4)</label>
-          <input
-            type="file"
-            name="images"
-            accept="image/*"
-            multiple
-            onChange={handleImagesChange}
-          />
 
-          <div className="grid grid-cols-4 gap-2 mt-2">
-            {form.images.map((img, idx) => (
-              <img
-                key={idx}
-                src={URL.createObjectURL(img)}
-                alt={`sub-${idx}`}
-                className="h-24 w-full object-cover rounded-md border"
-              />
-            ))}
-          </div>
+          {form.images.length > 0 && (
+              <div className="flex flex-wrap gap-3 mt-3">
+                {form.images.map((img, idx) => (
+                  <div key={idx} className="relative">
+                    <img
+                    src={URL.createObjectURL(img)}
+                    alt="preview"
+                    className="h-20 w-20 object-cover rounded"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveNewImage(idx)}
+                      className="absolute top-0 right-0 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-bl"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  
+                ))}
+              </div>
+            )}
+
+            <input
+              type="file"
+              name="images"
+              accept="image/*"
+              multiple
+              onChange={handleImagesChange}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-green-100 file:text-green-700 hover:file:bg-green-200"
+            />
         </div>
 
         {/* Buttons */}

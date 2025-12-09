@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { getChatMessages } from "../services/chatService";
 
-export const useGetChatMessages = (packageId) => {
+export const useGetChatMessages = (chatId) => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchMessages = () => {
-    getChatMessages(packageId).then((data) => {
+    getChatMessages(chatId).then((data) => {
       setMessages(data);
       setLoading(false);
     });
@@ -14,7 +14,7 @@ export const useGetChatMessages = (packageId) => {
 
   useEffect(() => {
     fetchMessages();
-  }, [packageId]);
+  }, [chatId]);
 
   return { messages, loading, refetch: fetchMessages };
 };
