@@ -12,6 +12,9 @@ class Booking(models.Model):
     agency = models.ForeignKey("agency_app.AgencyProfile", on_delete=models.CASCADE, related_name="agency_bookings")
 
     no_of_members = models.PositiveIntegerField()
+    no_of_adults = models.PositiveIntegerField(null=True, blank=True)
+    no_of_kids = models.PositiveIntegerField(null=True, blank=True)
+    
     amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)  # computed server-side
     date = models.DateField() 
 

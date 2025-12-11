@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status, filters
+from rest_framework import viewsets, status, filters, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -51,6 +51,35 @@ class BookingViewSet(viewsets.ModelViewSet):
         return BookingRepository.get_all_by_user(user)
 
     def perform_create(self, serializer):
+        user = self.request.user
+        package = serializer.validated_data["package"]
+        booking_date = serializer.validated_data["date"]
+
+        #check for existing booking
+        start_date = booking_date - timedelta(days=3)
+        end_date = booking_date + timedelta(days=3)
+
+        existing = BookingRepository.get_conflicting_booking(
+            user=user,
+            package=package,
+            start_date=start_date,
+            end_date=end_date
+            )
+        if existing:
+            logger.info("conflicting booking exists")
+            raise serializers.ValidationError(
+                f"You already have a booking for {package.title} on {existing.date.strftime('%B %d, %Y')}"
+            ) 
+        
+        members = serializer.validated_data["no_of_members"]
+        adults = serializer.validated_data["no_of_adults"]
+        kids = serializer.validated_data["no_of_kids"]
+        if adults + kids != members:
+            logger.info(f"Total number of members is not correct. total: {members} kids: {kids} adults:{adults}")
+            raise serializers.ValidationError(
+                "Total number of members is not correct"
+            )
+        
         booking = serializer.save()
         logger.info("New booking created: ID=%s by user=%s", booking.id, booking.user.id)
         send_booking_confirmation_email_task.delay(booking.id)
@@ -152,6 +181,3 @@ class BookingViewSet(viewsets.ModelViewSet):
 
         return Response(self.get_serializer(booking).data)
     
-        
-        
-        

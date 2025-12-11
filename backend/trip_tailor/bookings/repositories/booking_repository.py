@@ -1,5 +1,6 @@
 from ..models import Booking
 from django.shortcuts import get_object_or_404
+from core.constants import BookingStatus
 
 class BookingRepository:
     @staticmethod
@@ -42,3 +43,11 @@ class BookingRepository:
         except Booking.DoesNotExist:
             return None
     
+    @staticmethod
+    def get_conflicting_booking(user, package, start_date, end_date):
+        return Booking.objects.filter(
+            user=user,
+            package=package,
+            date__range=[start_date,end_date],
+            booking_status=BookingStatus.ACTIVE
+        ).first()

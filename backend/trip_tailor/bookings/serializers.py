@@ -14,7 +14,7 @@ class BookingSerializer(serializers.ModelSerializer):
         model = Booking
         fields = [
             "id", "package", "package_title", "package_image", "package_duration",
-            "user", "no_of_members", "amount", "date","agency_name",
+            "user", "no_of_members", "no_of_adults", "no_of_kids", "amount", "date","agency_name",
             "payment_method", "payment_status","booking_status","cancelled_at","username", "created_at", "user_email"
         ]
         read_only_fields =["amount", "payment_status", "user", "agency", "user_email"]
@@ -22,8 +22,10 @@ class BookingSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         package = validated_data["package"]
         members = validated_data["no_of_members"]
+        adults = validated_data["no_of_adults"]
+        kids = validated_data["no_of_kids"]
 
-        validated_data["amount"] = package.price * members
+        validated_data["amount"] = package.price * adults + (package.price//2) * kids
         validated_data["payment_status"] = PaymentStatus.PENDING
         validated_data["agency"] = package.agency
         validated_data["user"] = self.context["request"].user

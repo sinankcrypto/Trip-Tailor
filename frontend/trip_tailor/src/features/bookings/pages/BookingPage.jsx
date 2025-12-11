@@ -14,6 +14,8 @@ const BookingPage = () => {
   const packagedata = pkg
   const [form, setForm] = useState({
     no_of_members: 1,
+    no_of_adults: 1,
+    no_of_kids: 0,
     date: "",
     payment_method: "ON_HAND",
   });
@@ -23,7 +25,8 @@ const BookingPage = () => {
   // Calculate total price dynamically
   const totalPrice =
     packagedata && form.no_of_members
-      ? Number(packagedata.price) * form.no_of_members
+      ? Number(packagedata.price) * Number(form.no_of_adults) + 
+      Number(packagedata.price / 2) * Number(form.no_of_kids)
       : 0;
 
   const handleChange = (e) => {
@@ -40,6 +43,11 @@ const BookingPage = () => {
     if (form.no_of_members < 1 || form.no_of_members > 15) {
       newErrors.no_of_members =
         "Number of members should be between 1 and 15.";
+    }
+
+    if (Number(form.no_of_adults) + Number(form.no_of_kids) !== Number(form.no_of_members)) {
+      newErrors.members_count =
+        "Total members must be equal to adults + kids.";
     }
 
     // ✅ Validate date (must be future)
@@ -74,7 +82,7 @@ const BookingPage = () => {
       }
     } catch (error) {
       console.error("Booking failed:", error);
-      toast.error("something went wrong, try again")
+      toast.error(error.response.data || "something went wrong, try again")
     }
   }
   const handleSubmit = async (e) => {
@@ -85,6 +93,8 @@ const BookingPage = () => {
       const payload = {
         package: id,
         no_of_members: form.no_of_members,
+        no_of_adults: form.no_of_adults,
+        no_of_kids: form.no_of_kids,
         date: form.date,
         payment_method: form.payment_method,
       };
@@ -126,7 +136,7 @@ const BookingPage = () => {
             </h1>
             <p className="text-gray-700">{packagedata.description}</p>
             <p className="text-lg font-semibold text-green-600 mt-4">
-              ₹{packagedata.price} / person
+              ₹{packagedata.price} / person (50% off for kids)
             </p>
           </div>
         </div>
@@ -154,6 +164,38 @@ const BookingPage = () => {
               </p>
             )}
           </div>
+          <div>
+            <label className="block text-gray-600 font-medium mb-2">
+              Number of Adults
+            </label>
+            <input
+              type="number"
+              name="no_of_adults"
+              min="1"
+              value={form.no_of_adults}
+              onChange={handleChange}
+              className="w-full border rounded-lg px-4 py-2 focus:ring focus:ring-green-300"
+              required
+            />
+          </div>
+
+          {/* Kids */}
+          <div>
+            <label className="block text-gray-600 font-medium mb-2">
+              Number of Kids (Below 12 Years)
+            </label>
+            <input
+              type="number"
+              name="no_of_kids"
+              min="0"
+              value={form.no_of_kids}
+              onChange={handleChange}
+              className="w-full border rounded-lg px-4 py-2 focus:ring focus:ring-green-300"
+            />
+          </div>
+          {errors.members_count && (
+            <p className="text-red-500 text-sm">{errors.members_count}</p>
+          )}
 
           {/* Date of Travel */}
           <div>

@@ -17,7 +17,7 @@ const BookingSuccessPage = () => {
         </h1>
 
         <p className="text-gray-700 mb-2">
-          <strong>Package:</strong> {booking.package.title}
+          <strong>Package:</strong> {booking.package_title}
         </p>
         <p className="text-gray-700 mb-2">
           <strong>Date:</strong> {booking.date}
