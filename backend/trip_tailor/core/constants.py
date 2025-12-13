@@ -17,7 +17,10 @@ class PaymentStatus(StrEnum):
     PENDING = "PENDING"
     PAID = "PAID"
     FAILED = "FAILED"
+    REFUND_PENDING = "REFUND_PENDING"
     REFUNDED = "REFUNDED"
+    PARTIALLY_REFUNDED = "PARTIALLY_REFUNDED"
+    REFUND_FAILED = "REFUND_FAILED"
 
     @classmethod
     def choices(cls):
@@ -39,6 +42,15 @@ class TransactionStatus(StrEnum):
     COMPLETED = "completed"
     FAILED = "failed"
     CANCELLED = "cancelled"
+
+    @classmethod
+    def choices(cls):
+        return to_choices(cls)
+    
+class RefundStatus(StrEnum):
+    PENDING = "PENDING"
+    SUCCEEDED = "SUCCEEDED"
+    FAILED = "FAILED"
 
     @classmethod
     def choices(cls):

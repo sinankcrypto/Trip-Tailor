@@ -18,7 +18,9 @@ from agency_app.permissions import IsVerifiedAgency
 from django_filters.rest_framework import DjangoFilterBackend
 
 from core.tasks import send_booking_confirmation_email_task
-from core.constants import BookingStatus, PaymentStatus
+from core.constants import BookingStatus, PaymentStatus, PaymentMethod
+from payments.repository.payment_repository import PaymentRepository
+from payments.repository.refund_repository import RefundRepository
 
 import logging
 
@@ -116,9 +118,30 @@ class BookingViewSet(viewsets.ModelViewSet):
 
         with transaction.atomic():
             booking = BookingRepository.get_by_id_for_update(pk)
-            if booking.payment_status == PaymentStatus.PAID:
-                booking.payment_status = PaymentStatus.REFUNDED
 
+            if booking.payment_method == PaymentMethod.ONLINE and booking.payment_status == PaymentStatus.PAID:
+                now = timezone.now()
+                cutoff = timezone.make_aware(
+                    datetime.combine(booking.date, datetime.min.time())
+                ) - timedelta(hours=24)
+
+                is_full_refund = now <= cutoff
+
+                if is_full_refund:
+                    RefundRepository.refund_booking(
+                        booking=booking,
+                        full_refund=True,
+                        reason="requested_by_customer",
+                    )
+                else:
+                    refund_amount = int(booking.amount * 0.8)
+
+                    RefundRepository.refund_booking(
+                        booking=booking,
+                        full_refund=False,
+                        reason="requested_by_customer",
+                    )
+                booking.payment_status = PaymentStatus.REFUND_PENDING
             booking.booking_status = BookingStatus.CANCELLED
             booking.cancelled_at = timezone.now()
             booking.save()

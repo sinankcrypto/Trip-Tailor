@@ -21,6 +21,7 @@ from .serializers import PaymentSettingsStatusSerializer, TransactionSerializer
 from bookings.repositories.booking_repository import BookingRepository
 
 from core.constants import TransactionStatus, PaymentStatus
+from .handlers.refund_handler import handle_refund_updated
 
 import stripe
 import json
@@ -109,6 +110,10 @@ def stripe_webhook(request):
             PaymentRepository.update_transaction_status(transaction, TransactionStatus.FAILED)
             logger.warning(f"❌ Payment failed for session {session_id}")
     
+    elif event["type"] == "refund.updated":
+        refund_data = event["data"]["object"]
+        handle_refund_updated(refund_data)
+
     else:
         logger.info(f"Unhandled event type: {event['type']}")
 

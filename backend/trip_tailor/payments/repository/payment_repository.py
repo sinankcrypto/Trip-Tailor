@@ -2,8 +2,10 @@ import stripe
 
 from django.conf import settings
 from admin_app.models import PlatformFee
-from ..models import Transaction
+from ..models import Transaction,Refund
 from bookings.repositories.booking_repository import BookingRepository
+from bookings.models import Booking
+from core.constants import PaymentStatus, RefundStatus
 
 class PaymentRepository:
 
@@ -82,8 +84,7 @@ class PaymentRepository:
                 "platform_fee":platform_fee,
             },
         )
-        booking_repo = BookingRepository()
-        booking = booking_repo.get_by_id(booking_id)
+        booking = BookingRepository.get_by_id(booking_id)
 
         Transaction.objects.create(
             booking=booking,
@@ -128,6 +129,7 @@ class PaymentRepository:
 
         return queryset
     
+    @staticmethod
     def list_transactions_for_agency(agency, filters=None, ordering = "-created_at"):
         queryset = Transaction.objects.filter(agency=agency)
 

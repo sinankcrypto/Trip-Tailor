@@ -49,3 +49,64 @@ Amount Paid: ₹{booking.amount}
 Thank you for choosing Trip Tailor.
 """
     send_email(subject, message, [email])
+
+def send_refund_success_email(
+    *,
+    user_email: str,
+    user_name: str,
+    package_name: str,
+    amount: int,
+):
+    subject = "Your refund has been successfully processed"
+
+    message = f"""
+Hi {user_name},
+
+Good news! 🎉
+
+Your refund for the booking "{package_name}" has been successfully processed.
+
+Refund details:
+• Amount refunded: ₹{amount}
+
+The refunded amount will be credited back to your original payment method.
+Depending on your bank, it may take 5–7 business days to reflect.
+
+If you have any questions, feel free to contact our support team.
+
+Thank you for choosing Trip Tailor.
+
+— Trip Tailor Team
+""".strip()
+
+    send_email(subject, message, [user_email])
+
+def send_refund_failed_email(
+    *,
+    user_email: str,
+    user_name: str,
+    package_name: str,
+    amount: int,
+):
+    subject = "Refund failed for your booking"
+
+    message = f"""
+Hi {user_name},
+
+We’re sorry to inform you that the refund for your booking "{package_name}"
+could not be processed successfully.
+
+Refund details:
+• Attempted amount: ₹{amount}
+
+This may be due to a temporary issue with your bank or payment provider.
+Our team has been notified and will review this shortly.
+
+If the issue persists, please contact our support team.
+
+Thank you for your patience.
+
+— Trip Tailor Team
+""".strip()
+
+    send_email(subject, message, [user_email])
