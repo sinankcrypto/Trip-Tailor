@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useUpdatePackage } from "../hooks/useUpdatePackage";
 import { useGetOnePackage } from "../hooks/useGetOnePackage";
+import { getCroppedImage } from "../../../utils/cropImage";
+import ImageCropModal from "../../../components/ImageCropModal";
 import toast from "react-hot-toast";
 
 const EditPackagePage = () => {
@@ -9,6 +11,12 @@ const EditPackagePage = () => {
   const { pkg, loading: fetching, error: fetchError } = useGetOnePackage(id);
   const { handleUpdate, loading: updating, error: updateError } =
     useUpdatePackage();
+
+  const [cropImageSrc, setCropImageSrc] = useState(null);
+  const [isCropping, setIsCropping] = useState(false);
+  const [cropTarget, setCropTarget] = useState(null); // "main" | "sub"
+
+  const [mainImagePreview, setMainImagePreview] = useState(null);
 
   const [form, setForm] = useState({
     title: "",
@@ -20,10 +28,9 @@ const EditPackagePage = () => {
   });
 
   const [existingImages, setExistingImages] = useState([]);
-
   const navigate = useNavigate();
 
-  // Load package details when fetched
+  /* ---------------- Load package ---------------- */
   useEffect(() => {
     if (pkg) {
       setForm({
@@ -34,10 +41,82 @@ const EditPackagePage = () => {
         main_image: null,
         images: [],
       });
-
       setExistingImages(pkg.images || []);
     }
   }, [pkg]);
+
+  /* ---------------- Cleanup preview ---------------- */
+  useEffect(() => {
+    return () => {
+      if (mainImagePreview) URL.revokeObjectURL(mainImagePreview);
+    };
+  }, [mainImagePreview]);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  /* ================= MAIN IMAGE ================= */
+  const handleMainImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropImageSrc(reader.result);
+      setCropTarget("main");
+      setIsCropping(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  /* ================= SUB IMAGE ================= */
+  const handleSubImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropImageSrc(reader.result);
+      setCropTarget("sub");
+      setIsCropping(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  /* ================= APPLY CROP ================= */
+  const handleCropConfirm = async (croppedAreaPixels) => {
+    const croppedFile = await getCroppedImage(
+      cropImageSrc,
+      croppedAreaPixels
+    );
+
+    if (cropTarget === "main") {
+      setForm((prev) => ({
+        ...prev,
+        main_image: croppedFile,
+      }));
+
+      const previewUrl = URL.createObjectURL(croppedFile);
+      setMainImagePreview(previewUrl);
+    }
+
+    if (cropTarget === "sub") {
+      setForm((prev) => ({
+        ...prev,
+        images: [...prev.images, croppedFile],
+      }));
+    }
+
+    setIsCropping(false);
+    setCropImageSrc(null);
+    setCropTarget(null);
+  };
+
+  /* ================= REMOVE ================= */
+  const handleRemoveExistingImage = (index) => {
+    setExistingImages(existingImages.filter((_, i) => i !== index));
+  };
 
   const handleRemoveNewImage = (index) => {
     setForm((prev) => ({
@@ -46,27 +125,7 @@ const EditPackagePage = () => {
     }));
   };
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleMainImageChange = (e) => {
-    setForm({ ...form, main_image: e.target.files[0] });
-  };
-
-  const handleImagesChange = (e) => {
-    const newFiles = Array.from(e.target.files);
-
-    setForm((prevForm) => ({
-      ...prevForm,
-      images: [...prevForm.images, ...newFiles], // ✅ append instead of replace
-    }));
-  };
-
-  const handleRemoveExistingImage = (index) => {
-    setExistingImages(existingImages.filter((_, i) => i !== index));
-  };
-
+  /* ================= SUBMIT ================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -80,12 +139,10 @@ const EditPackagePage = () => {
       formData.append("main_image", form.main_image);
     }
 
-    // ✅ Keep only the IDs of existing images that remain
     existingImages.forEach((img) =>
       formData.append("existing_image_ids", img.id)
     );
 
-    // ✅ Add new sub images
     form.images.forEach((img) => formData.append("images", img));
 
     try {
@@ -93,7 +150,6 @@ const EditPackagePage = () => {
       toast.success("Package updated successfully!");
       navigate("/agency/my-packages");
     } catch (err) {
-      console.error(err);
       toast.error("Problem occurred while editing the package.");
     }
   };
@@ -104,177 +160,134 @@ const EditPackagePage = () => {
   return (
     <div className="max-w-3xl mx-auto px-6 py-10 font-jakarta">
       <div className="bg-white shadow-lg rounded-xl p-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Edit Package</h1>
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">
+          Edit Package
+        </h1>
 
-        <form
-          onSubmit={handleSubmit}
-          encType="multipart/form-data"
-          className="space-y-6"
-        >
-          {/* Title */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Title
-            </label>
-            <input
-              type="text"
-              name="title"
-              value={form.title}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <input
+            type="text"
+            name="title"
+            value={form.title}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded-lg"
+          />
 
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-              rows="4"
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            />
-          </div>
+          <textarea
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            rows="4"
+            className="w-full border px-3 py-2 rounded-lg"
+          />
 
-          {/* Price & Duration */}
           <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Price
-              </label>
-              <input
-                type="number"
-                name="price"
-                value={form.price}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Duration (days)
-              </label>
-              <input
-                type="number"
-                name="duration"
-                value={form.duration}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              />
-            </div>
+            <input
+              type="number"
+              name="price"
+              value={form.price}
+              onChange={handleChange}
+              className="w-full border px-3 py-2 rounded-lg"
+            />
+            <input
+              type="number"
+              name="duration"
+              value={form.duration}
+              onChange={handleChange}
+              className="w-full border px-3 py-2 rounded-lg"
+            />
           </div>
 
-          {/* Main Image */}
+          {/* -------- Main Image -------- */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Main Image
-            </label>
-
-            {pkg?.main_image && (
+            {!mainImagePreview && pkg?.main_image && (
               <img
                 src={pkg.main_image}
-                alt="Current main"
                 className="h-24 rounded mb-2 object-cover"
               />
             )}
 
+            {mainImagePreview && (
+              <img
+                src={mainImagePreview}
+                className="h-24 rounded mb-2 object-cover border-2 border-green-500"
+              />
+            )}
+
             <input
               type="file"
-              name="main_image"
               accept="image/*"
               onChange={handleMainImageChange}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-green-100 file:text-green-700 hover:file:bg-green-200"
             />
           </div>
 
-          {/* Sub Images */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Sub Images (optional, up to 4)
-            </label>
-
-            {existingImages.length > 0 && (
-              <div className="flex flex-wrap gap-3 mb-3">
-                {existingImages.map((img, idx) => (
-                  <div key={idx} className="relative">
-                    <img
-                      src={img.image_url}
-                      alt={`Sub ${idx}`}
-                      className="h-20 w-20 object-cover rounded"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveExistingImage(idx)}
-                      className="absolute top-0 right-0 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-bl"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
+          {/* -------- Sub Images -------- */}
+          <div className="flex flex-wrap gap-3">
+            {existingImages.map((img, idx) => (
+              <div key={idx} className="relative">
+                <img
+                  src={img.image_url}
+                  className="h-20 w-20 object-cover rounded"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleRemoveExistingImage(idx)}
+                  className="absolute top-0 right-0 bg-red-600 text-white text-xs"
+                >
+                  ✕
+                </button>
               </div>
-            )}
+            ))}
 
-            {form.images.length > 0 && (
-              <div className="flex flex-wrap gap-3 mt-3">
-                {form.images.map((img, idx) => (
-                  <div key={idx} className="relative">
-                    <img
-                      src={URL.createObjectURL(img)}
-                      alt="preview"
-                      className="h-20 w-20 object-cover rounded"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveNewImage(idx)}
-                      className="absolute top-0 right-0 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-bl"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
+            {form.images.map((img, idx) => (
+              <div key={idx} className="relative">
+                <img
+                  src={URL.createObjectURL(img)}
+                  className="h-20 w-20 object-cover rounded"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleRemoveNewImage(idx)}
+                  className="absolute top-0 right-0 bg-red-600 text-white text-xs"
+                >
+                  ✕
+                </button>
               </div>
-            )}
-
-            <input
-              type="file"
-              name="images"
-              accept="image/*"
-              multiple
-              onChange={handleImagesChange}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-green-100 file:text-green-700 hover:file:bg-green-200"
-            />
+            ))}
           </div>
 
-          {/* Buttons */}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleSubImageChange}
+          />
+
           <div className="flex justify-end gap-4">
             <button
               type="button"
               onClick={() => navigate("/agency/my-packages")}
-              className="px-6 py-2 bg-gray-300 text-gray-800 rounded-lg shadow hover:bg-gray-400 transition"
+              className="px-6 py-2 bg-gray-300 rounded-lg"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={updating}
-              className="px-6 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 disabled:opacity-50 transition"
+              className="px-6 py-2 bg-green-600 text-white rounded-lg"
             >
               {updating ? "Updating..." : "Update Package"}
             </button>
           </div>
         </form>
-
-        {updateError && (
-          <p className="mt-4 text-red-600 text-sm">{updateError}</p>
-        )}
       </div>
+
+      {isCropping && (
+        <ImageCropModal
+          imageSrc={cropImageSrc}
+          onCancel={() => setIsCropping(false)}
+          onConfirm={handleCropConfirm}
+        />
+      )}
     </div>
   );
 };

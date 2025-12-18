@@ -9,34 +9,40 @@ def handle_refund_updated(refund_data):
     stripe_refund_id = refund_data["id"]
     refund_status = refund_data["status"]
     refund_amount = refund_data["amount"]
+    currency = refund_data["currency"]
 
-    refund = RefundRepository.get_refund_with_booking(
-        stripe_refund_id=stripe_refund_id
+    refund = RefundRepository.get_or_create_refund_with_booking(
+        refund_data=refund_data,
+        stripe_refund_id=stripe_refund_id,
+        refund_amount=refund_amount,
+        currency=currency
     )
 
     if not refund:
         return
 
     booking = refund.transaction.booking
+    user=booking.user
     with transaction.atomic():
 
         if refund_status == "succeeded":
             refund.status = RefundStatus.SUCCEEDED
+            refund.save(update_fields=["status"])
             send_refund_success_email_task.delay(
-                booking.user.email,
-                booking.user.username,
-                booking.package.title,
-                refund.amount // 100,
+                user_email=user.email,
+                user_name=user.username,
+                package_name=booking.package.title,
+                amount=refund_amount//100,
             )
 
         elif refund_status in ("failed", "canceled"):
             refund.status = RefundStatus.FAILED
             refund.save(update_fields=["status"])
             send_refund_failed_email_task.delay(
-                booking.user.email,
-                booking.user.username,
-                booking.package.title,
-                refund.amount // 100,
+                user_email=user.email,
+                user_name=user.username,
+                package_name=booking.package.title,
+                amount=refund_amount/100,
             )
 
             return  

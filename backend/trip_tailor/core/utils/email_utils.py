@@ -110,3 +110,28 @@ Thank you for your patience.
 """.strip()
 
     send_email(subject, message, [user_email])
+
+def send_refund_initiated_email(
+    *,
+    user_email: str,
+    user_name: str,
+    package_name: str,
+    amount: int,
+):
+    subject = "Refund initiated"
+
+    message = f"""
+Hi {user_name},
+
+Your refund for the booking "{package_name}" has been initiated.
+
+Refund Amount: ₹{amount}
+
+The amount will be credited back to your original payment method within 3–7 business days.
+
+We’ll notify you once the refund is completed.
+
+– Trip Tailor Support
+""".strip()
+    
+    send_email(subject, message, [user_email])

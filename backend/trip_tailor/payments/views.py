@@ -126,12 +126,10 @@ class CreateCheckoutSessionView(APIView):
         """
         Create a checkout session and a transaction
         """
-        booking_repo = BookingRepository()
-
         booking_id = request.data.get("booking_id")
         if not booking_id:
             return Response({"error": "booking_id is required"}, status=400)
-        booking = booking_repo.get_by_id(booking_id)
+        booking = BookingRepository.get_by_id(booking_id)
         if not booking:
             logger.error("Booking not found")
             return Response({"error": "Booking not found"}, status=404)
@@ -156,12 +154,11 @@ class AgencyPaymentSettingsView(APIView):
         """
         Return the agency's stripe connection status
         """
-        repo = PaymentSettingsRepository()
         agency = AgencyRepository.get_profile(request.user)
         if not agency:
             return Response({"detail": "Agency profile not found"}, status=status.HTTP_404_NOT_FOUND)
         
-        status_info = repo.get_account_status(agency.stripe_account_id)
+        status_info = PaymentSettingsRepository.get_account_status(agency.stripe_account_id)
         serializer = PaymentSettingsStatusSerializer(status_info)
         return Response(serializer.data)
             

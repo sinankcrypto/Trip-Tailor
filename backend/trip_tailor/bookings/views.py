@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django.db import transaction
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from .serializers import (
     BookingSerializer,
@@ -21,6 +21,7 @@ from core.tasks import send_booking_confirmation_email_task
 from core.constants import BookingStatus, PaymentStatus, PaymentMethod
 from payments.repository.payment_repository import PaymentRepository
 from payments.repository.refund_repository import RefundRepository
+from payments.repository.payment_settings_repository import PaymentSettingsRepository
 
 import logging
 
@@ -42,7 +43,10 @@ class BookingViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:
             return BookingSerializer
-        return BookingSerializer if self.request.user.is_staff else UserBookingSerializer
+        if self.request.user.is_staff or hasattr(self.request.user, "agency_profile"):
+            return BookingSerializer  
+        else:
+            UserBookingSerializer
 
     def get_queryset(self):
         user = self.request.user
@@ -58,8 +62,8 @@ class BookingViewSet(viewsets.ModelViewSet):
         booking_date = serializer.validated_data["date"]
 
         #check for existing booking
-        start_date = booking_date - timedelta(days=3)
-        end_date = booking_date + timedelta(days=3)
+        start_date = booking_date - timedelta(days=5)
+        end_date = booking_date + timedelta(days=5)
 
         existing = BookingRepository.get_conflicting_booking(
             user=user,
@@ -82,6 +86,15 @@ class BookingViewSet(viewsets.ModelViewSet):
                 "Total number of members is not correct"
             )
         
+        agency = package.agency
+        if not agency.stripe_account_id:
+            raise serializers.ValidationError("The agency is not accepting online payment as of now")
+
+        status_info = PaymentSettingsRepository.get_account_status(agency.stripe_account_id)
+        if not status_info:
+            raise serializers.ValidationError("Agency has not completed Stripe onboarding")
+        
+
         booking = serializer.save()
         logger.info("New booking created: ID=%s by user=%s", booking.id, booking.user.id)
         send_booking_confirmation_email_task.delay(booking.id)
@@ -138,6 +151,7 @@ class BookingViewSet(viewsets.ModelViewSet):
 
                     RefundRepository.refund_booking(
                         booking=booking,
+                        refund_amount=refund_amount,
                         full_refund=False,
                         reason="requested_by_customer",
                     )

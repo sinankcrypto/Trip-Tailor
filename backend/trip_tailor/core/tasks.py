@@ -1,5 +1,6 @@
 from celery import shared_task
-from core.utils.email_utils import send_otp_email, send_booking_confirmation_email, send_refund_failed_email, send_refund_success_email
+from core.utils.email_utils import (send_otp_email, send_booking_confirmation_email, 
+                                    send_refund_failed_email, send_refund_success_email, send_refund_initiated_email)
 from bookings.models import Booking
 
 @shared_task
@@ -16,6 +17,7 @@ def send_booking_confirmation_email_task(self, booking_id):
 
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=30, retry_kwargs={"max_retries": 3})
 def send_refund_success_email_task(
+    self, *,
     user_email,
     user_name,
     package_name,
@@ -31,12 +33,28 @@ def send_refund_success_email_task(
 
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=30, retry_kwargs={"max_retries": 3})
 def send_refund_failed_email_task(
+    self, *,
     user_email,
     user_name,
     package_name,
     amount,
 ):
     send_refund_failed_email(
+        user_email=user_email,
+        user_name=user_name,
+        package_name=package_name,
+        amount=amount,
+    )
+
+@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=30, retry_kwargs={"max_retries": 3})
+def send_refund_initiated_email_task(
+    self, *,
+    user_email,
+    user_name,
+    package_name,
+    amount,
+):
+    send_refund_initiated_email(
         user_email=user_email,
         user_name=user_name,
         package_name=package_name,
