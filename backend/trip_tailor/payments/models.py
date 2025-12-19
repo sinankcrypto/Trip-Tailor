@@ -38,8 +38,8 @@ class Transaction(models.Model):
     @property
     def total_refunded(self):
         """Return total refunded amount in paise."""
-        agg = self.refunds.aggregate(total=models.Sum('amount'))    
-        return agg
+        return self.refunds.aggregate(total=models.Sum('amount'))["total"] or 0
+        
     
     def refundable_amount(self):
         """Return amount still refundable in paise"""

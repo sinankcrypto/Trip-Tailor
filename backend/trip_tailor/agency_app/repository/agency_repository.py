@@ -26,3 +26,7 @@ class AgencyRepository:
     def get_agency_by_id(pk):
         return User.objects.get(pk = pk, is_agency = True)
     
+    @staticmethod
+    def count_of_all_agencies():
+        return AgencyRepository.get_all_agencies_with_profiles().count()
+    

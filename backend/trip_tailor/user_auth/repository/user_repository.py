@@ -41,6 +41,7 @@ class UserRepository:
 
         return user, created
     
-    
-    
+    @staticmethod
+    def count_of_all_users():
+        return UserRepository.get_all_users().count()
     

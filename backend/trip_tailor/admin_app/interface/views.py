@@ -1,13 +1,16 @@
+import calendar
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics
-from admin_app.interface.serializers import AdminLoginSerializer, PlatformFeeSerializer
+from admin_app.interface.serializers import AdminLoginSerializer, PlatformFeeSerializer, AdminDashboardMetricsSerializer
 from user_auth.repository.user_repository import UserRepository
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from user_auth.domain.models import CustomUser
 from user_auth.interface.views import CustomUserSerializer
 from agency_app.repository.agency_repository import AgencyRepository
+from bookings.repositories.booking_repository import BookingRepository
+from payments.repository.payment_repository import PaymentRepository
 from core.pagination import StandardResultsSetPagination
 
 from agency_app.models import AgencyProfile
@@ -214,3 +217,31 @@ class PlatformFeeView(APIView):
             serializer.save()
             return Response({"message": "Platform fee updated successfully"})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class AdminDashboardMetricsView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        transaction_data = PaymentRepository.total_earning_and_total_platform_fee()
+
+        monthly_qs = BookingRepository.monthly_booking_stats()
+
+        monthly_bookings = []
+        for item in monthly_qs:
+            month_name = calendar.month_abbr[item["month"].month]
+            monthly_bookings.append({
+                "month": month_name,
+                "bookings": item["bookings"]
+            })
+
+        payload = {
+            "total_users": UserRepository.count_of_all_users(),
+            "total_agencies": AgencyRepository.count_of_all_agencies(),
+            "total_bookings": BookingRepository.count_of_bookings(),
+            "total_earnings": transaction_data["total_earning"],
+            "total_platform_fee": transaction_data["total_platform_fee"],
+            "monthly_bookings": monthly_bookings,
+        }
+
+        serializer = AdminDashboardMetricsSerializer(payload)
+        return Response(serializer.data)

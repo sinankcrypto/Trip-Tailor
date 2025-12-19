@@ -6,6 +6,7 @@ from ..models import Transaction,Refund
 from bookings.repositories.booking_repository import BookingRepository
 from bookings.models import Booking
 from core.constants import PaymentStatus, RefundStatus
+from django.db.models import Sum
 
 class PaymentRepository:
 
@@ -139,5 +140,22 @@ class PaymentRepository:
 
         if ordering:
             queryset = queryset.order_by(ordering)
+
+        return queryset
+    
+    @staticmethod
+    def total_earning_and_total_platform_fee():
+        queryset = Transaction.objects.filter(
+            status = Transaction.Status.COMPLETED
+            ).aggregate(total_earning=Sum("amount"), total_platform_fee=Sum("platform_fee"))
+
+        return queryset
+    
+    @staticmethod
+    def total_earning_for_agency(agency):
+        queryset = Transaction.objects.filter(
+            agency=agency,
+            status=Transaction.Status.COMPLETED,
+        ).aggregate(total_earning=Sum("amount")-Sum("platform_fee"))
 
         return queryset
