@@ -317,3 +317,5 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+BOOKING_DATE_BUFFER_DAYS = config("BOOKING_DATE_BUFFER_DAYS", cast=int, default=5)

@@ -9,7 +9,6 @@ export const useSendMessage = (chatId, socketRef) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
       socketRef.current.send(JSON.stringify({ message: content }));
     }
-    await sendMessage(chatId, content);
     setSending(false);
   };
 

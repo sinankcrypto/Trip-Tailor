@@ -58,23 +58,23 @@ class ChatMessagesAPIView(APIView):
         serializer = MessageSerializer(messages, many=True, context={"request": request})
         return Response(serializer.data)
 
-    def post(self, request, id):
-        user = request.user
-        content = request.data.get("message", "").strip()
+    # def post(self, request, id):
+    #     user = request.user
+    #     content = request.data.get("message", "").strip()
 
-        if not content:
-            logger.warning("no content in message")
-            return Response({"error": "Message required"}, status=400)
+    #     if not content:
+    #         logger.warning("no content in message")
+    #         return Response({"error": "Message required"}, status=400)
         
-        try:
-            session = ChatRepository.get_session_by_id(id)
-        except Http404:
-            logger.info("Session %s not found, creating new for user %s", id, user.username)
-            session = ChatRepository.get_or_create_session(
-                package_id=id,
-                user=user
-            )
+    #     try:
+    #         session = ChatRepository.get_session_by_id(id)
+    #     except Http404:
+    #         logger.info("Session %s not found, creating new for user %s", id, user.username)
+    #         session = ChatRepository.get_or_create_session(
+    #             package_id=id,
+    #             user=user
+    #         )
 
-        message = ChatRepository.create_message(session, request.user, content)
-        serializer = MessageSerializer(message, context={"request": request})
-        return Response(serializer.data, status=201)
+    #     message = ChatRepository.create_message(session, request.user, content)
+    #     serializer = MessageSerializer(message, context={"request": request})
+    #     return Response(serializer.data, status=201)

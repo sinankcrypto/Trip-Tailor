@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django.db import transaction
+from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta, datetime
 
@@ -46,7 +47,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         if self.request.user.is_staff or hasattr(self.request.user, "agency_profile"):
             return BookingSerializer  
         else:
-            UserBookingSerializer
+            return UserBookingSerializer
 
     def get_queryset(self):
         user = self.request.user
@@ -61,9 +62,10 @@ class BookingViewSet(viewsets.ModelViewSet):
         package = serializer.validated_data["package"]
         booking_date = serializer.validated_data["date"]
 
+        buffer_days = settings.BOOKING_DATE_BUFFER_DAYS
         #check for existing booking
-        start_date = booking_date - timedelta(days=5)
-        end_date = booking_date + timedelta(days=5)
+        start_date = booking_date - timedelta(days=buffer_days)
+        end_date = booking_date + timedelta(days=buffer_days)
 
         existing = BookingRepository.get_conflicting_booking(
             user=user,

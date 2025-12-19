@@ -109,7 +109,7 @@ const Dashboard = () => {
 
           <DashboardStatsCard
             title="Total Earnings"
-            value={`₹${metrics.total_earnings.toLocaleString()}`}
+            value={`₹${metrics.total_earnings? metrics.total_earnings.toLocaleString():0}`}
             type="earnings"
           />
 

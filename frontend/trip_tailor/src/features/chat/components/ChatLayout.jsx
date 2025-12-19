@@ -87,9 +87,9 @@ export default function ChatLayout({
   if (loading) return <p className="text-center py-10">Loading chat...</p>;
 
   return (
-    <div className="flex flex-col h-screen max-w-4xl mx-auto bg-gray-100">
-      <div className="bg-green-600 text-white p-4 shadow-lg">
-        <h1 className="text-2xl font-bold">{title}</h1>
+    <div className="flex flex-col h-[calc(100vh-84px)] max-w-4xl mx-auto bg-gray-100">
+      <div className="bg-green-500 text-white shadow-lg flex justify-end">
+        <h1 className="text-sm font-semibold py-4 pr-4">{title}</h1>
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
