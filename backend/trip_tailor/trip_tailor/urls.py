@@ -61,6 +61,7 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),       
     path('api/token/refresh-cookie/', RefreshTokenCookieView.as_view(), name='refresh-cookie'),
     path('api/chat/', include('chat.urls')),
+    path('api/', include('reviews.urls')),
 
 
     path("auth/", include("dj_rest_auth.urls")),

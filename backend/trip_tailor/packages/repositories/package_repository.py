@@ -1,5 +1,7 @@
 from packages.models import Package, PackageImage
 from users.infra.services.cloudinary_service import CloudinaryService
+from django.db.models.functions import Coalesce
+from django.db.models import Avg, Count, Value
 
 from django.shortcuts import get_object_or_404
 
@@ -58,6 +60,10 @@ class PackageRepository:
             .filter(is_listed=True, is_deleted=False)
             .select_related("agency")
             .prefetch_related("images")
+            .annotate(
+                average_rating=Coalesce(Avg("reviews__rating"), Value(0.0)),
+                total_reviews=Count("reviews", distinct=True),
+            )
         )
     
     def get_by_id(self,pk):
