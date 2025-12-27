@@ -1,8 +1,10 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useGetOnePackage } from "../hooks/useGetOnePackage";
+import { getPackageReviews } from "../../bookings/services/reviewService";
 import { Star, X } from "lucide-react";
 import { useCreateChatSession } from "../../chat/hooks/useCreateChatSession";
+import { useGetPackageReviews } from "../../bookings/hooks/useGetPackageReviews";
 
 const PackageDetailPage = () => {
   const { id } = useParams();
@@ -13,6 +15,14 @@ const PackageDetailPage = () => {
 
   const packagedata = pkg;
   const [zoomedImage, setZoomedImage] = useState(null);
+
+  const {
+    reviews,
+    loading: reviewsLoading,
+    error: reviewsError,
+    loadMore,
+    hasMore,
+  } = useGetPackageReviews(id);
 
   if (loading) {
     return (
@@ -79,21 +89,29 @@ const PackageDetailPage = () => {
 
             {/* ⭐ Package Rating */}
             <div className="flex items-center gap-2 mb-4">
-              <p className="text-lg font-semibold text-yellow-500">4.6</p>
+              <p className="text-lg font-semibold text-yellow-500">
+                {packagedata.average_rating.toFixed(1)}
+              </p>
+
               <div className="flex">
-                {[...Array(5)].map((_, i) => (
+                {[1, 2, 3, 4, 5].map((star) => (
                   <Star
-                    key={i}
+                    key={star}
                     size={18}
-                    className={`${
-                      i < 4 ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
-                    }`}
+                    className={
+                      star <= Math.round(packagedata.average_rating)
+                        ? "text-yellow-400 fill-yellow-400"
+                        : "text-gray-300"
+                    }
                   />
                 ))}
               </div>
-              <p className="text-gray-500 text-sm ml-1">(120 reviews)</p>
-            </div>
 
+              <p className="text-gray-500 text-sm ml-1">
+                ({packagedata.total_reviews}{" "}
+                {packagedata.total_reviews === 1 ? "review" : "reviews"})
+              </p>
+            </div>
             <p className="text-gray-700 leading-relaxed mb-6">
               {packagedata.description}
             </p>
@@ -178,6 +196,83 @@ const PackageDetailPage = () => {
           </div>
         )}
       </div>
+
+      {/* ⭐ Reviews Section */}
+      <div className="mt-10 bg-white shadow-lg rounded-2xl px-8 py-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          Customer Reviews
+        </h2>
+
+        {/* Loading */}
+        {reviewsLoading && (
+          <p className="text-gray-500">Loading reviews...</p>
+        )}
+
+        {/* Error */}
+        {reviewsError && (
+          <p className="text-red-500">{reviewsError}</p>
+        )}
+
+        {/* No Reviews */}
+        {!reviewsLoading && reviews.length === 0 && (
+          <p className="text-gray-500">No reviews yet.</p>
+        )}
+
+        {/* Reviews List */}
+        <div className="space-y-6">
+          {reviews.map((review) => (
+            <div
+              key={review.id}
+              className="border-b border-gray-200 pb-4"
+            >
+              <div className="flex items-center justify-between mb-1">
+                {/* Username */}
+                <p className="font-semibold text-gray-800">
+                  {review?.username || "User"}
+                </p>
+
+                {/* Rating */}
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      size={16}
+                      className={
+                        star <= review.rating
+                          ? "text-yellow-400 fill-yellow-400"
+                          : "text-gray-300"
+                      }
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Comment */}
+              <p className="text-gray-700 mb-1">
+                {review.comment}
+              </p>
+
+              {/* Date */}
+              <p className="text-sm text-gray-400">
+                {new Date(review.created_at).toLocaleDateString()}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Pagination Buttons */}
+        <div className="flex justify-center mt-6">
+          {hasMore && (
+            <button
+              onClick={loadMore}
+              className="px-6 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition"
+            >
+              Show More Reviews
+            </button>
+          )}
+        </div>
+      </div>
+
 
       {/* 🔍 Zoom Modal */}
       {zoomedImage && (

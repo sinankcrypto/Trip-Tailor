@@ -63,7 +63,7 @@ class PackageRepository:
             .annotate(
                 average_rating=Coalesce(Avg("reviews__rating"), Value(0.0)),
                 total_reviews=Count("reviews", distinct=True),
-            )
+            ).order_by("-created_at")
         )
     
     def get_by_id(self,pk):

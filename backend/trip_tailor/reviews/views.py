@@ -1,14 +1,21 @@
-from rest_framework import viewsets, permissions  
+from rest_framework import viewsets, permissions, serializers
+from rest_framework.serializers import ValidationError
 from .serializers import ReviewSerializer
 from .repository.review_repository import ReviewRepository
 from rest_framework.exceptions import PermissionDenied
+from core.pagination import ReviewPagination
 
 # Create your views here.   
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [permissions.IsAuthenticated]
     http_method_names = ["get", "post"]
+    pagination_class = ReviewPagination
+
+    def get_permissions(self):
+        if self.action == "create":
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
 
     def get_queryset(self):
         package_id = self.request.query_params.get("package_id")
@@ -27,10 +34,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
         
         if booking.user != self.request.user:
             raise PermissionDenied("You cannot review this booking.")
+        
+        if hasattr(booking, "review"):
+            raise ValidationError("You have already reviewed this booking.")
 
-        ReviewRepository.create_review(
-            user=self.request.user,
-            booking=booking,
-            rating=serializer.validated_data.get("rating"),
-            comment=serializer.validated_data.get("comment")
-        )
+        serializer.save(user=self.request.user)

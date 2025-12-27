@@ -13,16 +13,32 @@ class BookingRepository:
     
     @staticmethod
     def get_all_by_user(user):
-        return Booking.objects.select_related("package", "user").filter(user=user).order_by("-created_at")
+        return (
+            Booking.objects
+            .select_related("package", "user")
+            .prefetch_related("review")
+            .filter(user=user)
+            .order_by("-created_at")
+        )
 
     @staticmethod
     def get_all_by_agency(agency):
-        return Booking.objects.select_related("package", "user").filter(agency=agency)
+        return (
+            Booking.objects
+            .select_related("package", "user")
+            .prefetch_related("review")
+            .filter(agency=agency)
+        ) 
 
     @staticmethod
     def get_by_id(booking_id):
         try:
-            return Booking.objects.select_related("package", "user").get(id=booking_id)
+            return (
+                Booking.objects
+                .select_related("package", "user")
+                .prefetch_related("review")
+                .get(id=booking_id)
+            ) 
         except Booking.DoesNotExist:
             return None
     
@@ -38,7 +54,12 @@ class BookingRepository:
     
     @staticmethod
     def get_all_bookings():
-        return Booking.objects.select_related('user', 'agency', 'package').all().order_by('-created_at')
+        return (
+            Booking.objects
+            .select_related('user', 'agency', 'package')
+            .prefetch_related('review')
+            .all().order_by('-created_at')
+        ) 
     
     @staticmethod
     def get_by_id_for_update(pk):

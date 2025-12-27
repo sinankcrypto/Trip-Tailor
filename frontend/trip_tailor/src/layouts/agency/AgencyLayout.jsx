@@ -10,7 +10,7 @@ const AgencyLayout = () => {
     location.pathname === path ? 'bg-green-100 text-green-700 font-medium' : '';
 
   return (
-    <div className="flex min-h-screen bg-gray-50 font-[Lexend]">
+    <div className="flex h-screen bg-gray-50 font-[Lexend] overflow-hidden">
       {/* Sidebar */}
       <aside className="w-64 bg-white shadow-md border-r border-gray-200 flex flex-col">
         <div className="p-6 text-2xl font-bold text-green-700 border-b border-gray-100">
@@ -77,7 +77,7 @@ const AgencyLayout = () => {
           <h1 className="text-2xl font-semibold text-gray-700">Welcome back, Agency!</h1>
         </header>
 
-        <div className="p-6">
+        <div className="flex-1 overflow-y-auto p-6">
           <Outlet />
         </div>
       </main>

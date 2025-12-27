@@ -1,6 +1,10 @@
 from rest_framework import serializers
 from .models import Booking
+from reviews.models import Review
 from core.constants import BookingStatus, PaymentStatus
+import logging
+
+logger = logging.Logger(__name__)
 
 class BookingSerializer(serializers.ModelSerializer):
     package_title = serializers.CharField(source="package.title", read_only=True)
@@ -59,12 +63,28 @@ class PaymentStatusUpdateSerializer(serializers.ModelSerializer):
         return value
 
 class UserBookingSerializer(BookingSerializer):
+    review = serializers.SerializerMethodField()
+
     class Meta(BookingSerializer.Meta):
         fields = [
             "id", "package_title", "package_image", "package_duration",
             "agency_name", "date", "no_of_members", "amount",
-            "payment_method", "payment_status", "booking_status", "created_at"
+            "payment_method", "payment_status", "booking_status", "created_at", "review",
         ]
+
+    def get_review(self, obj):
+        try:
+            review = obj.review
+        except Review.DoesNotExist:
+            logger.info("No review exists for booking %s", obj.id)
+            return None
+        
+        return {
+            "id": review.id,
+            "rating": review.rating,
+            "comment": review.comment,
+            "created_at": review.created_at,
+        }
 
 class BookingStatusUpdateSerializer(serializers.ModelSerializer):
     """Only for updating booking status"""
