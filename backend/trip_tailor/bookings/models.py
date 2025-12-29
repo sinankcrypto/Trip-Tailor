@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.conf import settings
 from django.utils import timezone
 
@@ -37,6 +38,14 @@ class Booking(models.Model):
     cancelled_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                name="booking_amount_positive",
+                condition=Q(amount__gt=0)
+            )
+        ]
 
     # ---- Helpers ----
     def cancel(self):

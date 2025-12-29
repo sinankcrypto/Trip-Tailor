@@ -165,74 +165,120 @@ const EditPackagePage = () => {
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Title */}
+        <div>
+          <label htmlFor="title" className="block font-medium text-gray-700 mb-1">
+            Package Title
+          </label>
           <input
+            id="title"
             type="text"
             name="title"
             value={form.title}
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded-lg"
+            required
           />
+        </div>
 
+        {/* Description */}
+        <div>
+          <label htmlFor="description" className="block font-medium text-gray-700 mb-1">
+            Description
+          </label>
           <textarea
+            id="description"
             name="description"
             value={form.description}
             onChange={handleChange}
             rows="4"
             className="w-full border px-3 py-2 rounded-lg"
+            required
           />
+        </div>
 
-          <div className="grid grid-cols-2 gap-6">
+        {/* Price & Duration */}
+        <div className="grid grid-cols-2 gap-6">
+          <div>
+            <label htmlFor="price" className="block font-medium text-gray-700 mb-1">
+              Price (₹)
+            </label>
             <input
+              id="price"
               type="number"
               name="price"
               value={form.price}
               onChange={handleChange}
               className="w-full border px-3 py-2 rounded-lg"
+              min="1"
+              required
             />
+          </div>
+
+          <div>
+            <label htmlFor="duration" className="block font-medium text-gray-700 mb-1">
+              Duration (Days)
+            </label>
             <input
+              id="duration"
               type="number"
               name="duration"
               value={form.duration}
               onChange={handleChange}
               className="w-full border px-3 py-2 rounded-lg"
+              min="1"
+              required
             />
           </div>
+        </div>
 
-          {/* -------- Main Image -------- */}
-          <div>
-            {!mainImagePreview && pkg?.main_image && (
-              <img
-                src={pkg.main_image}
-                className="h-24 rounded mb-2 object-cover"
-              />
-            )}
+        {/* Main Image */}
+        <div>
+          <label className="block font-medium text-gray-700 mb-2">
+            Main Image
+          </label>
 
-            {mainImagePreview && (
-              <img
-                src={mainImagePreview}
-                className="h-24 rounded mb-2 object-cover border-2 border-green-500"
-              />
-            )}
-
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleMainImageChange}
+          {!mainImagePreview && pkg?.main_image && (
+            <img
+              src={pkg.main_image}
+              className="h-24 rounded mb-2 object-cover"
+              alt="Current main"
             />
-          </div>
+          )}
 
-          {/* -------- Sub Images -------- */}
-          <div className="flex flex-wrap gap-3">
+          {mainImagePreview && (
+            <img
+              src={mainImagePreview}
+              className="h-24 rounded mb-2 object-cover border-2 border-green-500"
+              alt="New main"
+            />
+          )}
+
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleMainImageChange}
+          />
+        </div>
+
+        {/* Sub Images */}
+        <div>
+          <label className="block font-medium text-gray-700 mb-2">
+            Gallery Images
+          </label>
+
+          <div className="flex flex-wrap gap-3 mb-2">
             {existingImages.map((img, idx) => (
               <div key={idx} className="relative">
                 <img
                   src={img.image_url}
                   className="h-20 w-20 object-cover rounded"
+                  alt="Existing"
                 />
                 <button
                   type="button"
                   onClick={() => handleRemoveExistingImage(idx)}
-                  className="absolute top-0 right-0 bg-red-600 text-white text-xs"
+                  className="absolute top-0 right-0 bg-red-600 text-white text-xs px-1"
                 >
                   ✕
                 </button>
@@ -244,11 +290,12 @@ const EditPackagePage = () => {
                 <img
                   src={URL.createObjectURL(img)}
                   className="h-20 w-20 object-cover rounded"
+                  alt="New"
                 />
                 <button
                   type="button"
                   onClick={() => handleRemoveNewImage(idx)}
-                  className="absolute top-0 right-0 bg-red-600 text-white text-xs"
+                  className="absolute top-0 right-0 bg-red-600 text-white text-xs px-1"
                 >
                   ✕
                 </button>
@@ -261,24 +308,27 @@ const EditPackagePage = () => {
             accept="image/*"
             onChange={handleSubImageChange}
           />
+        </div>
 
-          <div className="flex justify-end gap-4">
-            <button
-              type="button"
-              onClick={() => navigate("/agency/my-packages")}
-              className="px-6 py-2 bg-gray-300 rounded-lg"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={updating}
-              className="px-6 py-2 bg-green-600 text-white rounded-lg"
-            >
-              {updating ? "Updating..." : "Update Package"}
-            </button>
-          </div>
-        </form>
+        {/* Actions */}
+        <div className="flex justify-end gap-4 pt-4">
+          <button
+            type="button"
+            onClick={() => navigate("/agency/my-packages")}
+            className="px-6 py-2 bg-gray-300 rounded-lg"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={updating}
+            className="px-6 py-2 bg-green-600 text-white rounded-lg"
+          >
+            {updating ? "Updating..." : "Update Package"}
+          </button>
+        </div>
+
+      </form>
       </div>
 
       {isCropping && (

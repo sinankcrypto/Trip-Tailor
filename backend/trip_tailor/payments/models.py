@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.conf import settings
 
 from core.constants import RefundStatus
@@ -32,6 +33,14 @@ class Transaction(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                name="transaction_amount_positive",
+                condition=Q(amount__gt=0)
+            )
+        ]
+
     def __str__(self):
         return f"Transaction {self.id} | {self.status}"
     
@@ -58,6 +67,12 @@ class Refund(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        constraints = [
+            models.CheckConstraint(
+                name="refund_amount_positive",
+                condition=Q(amount__gt=0)
+            )
+        ]
         
     def __str__(self):
         return f"Refund {self.id} | {self.status} | {self.amount} {self.currency}"
