@@ -12,6 +12,7 @@ from .serializers import PackageSerializer
 from .repositories.package_repository import PackageRepository
 from .filters import PackageFilter
 from agency_app.permissions import IsVerifiedAgency, IsAdminOrVerifiedAgency
+from core.exceptions import ImageUploadError
 
 from core.pagination import StandardResultsSetPagination
 
@@ -31,6 +32,10 @@ class PackageCreateView(generics.CreateAPIView):
                 images = self.request.FILES.getlist("images")
             )
             serializer.instance = package
+        except ImageUploadError:
+            raise ValidationError({
+                "image": "Image upload failed. Please try again."
+            })
         except ValueError as e:
             raise ValidationError({"error": str(e)})
     
@@ -43,17 +48,23 @@ class PackageUpdateView(generics.UpdateAPIView):
     
     def perform_update(self, serializer):
         package = self.get_object()
+        
+        try:
+            images = self.request.FILES.getlist("images")
+            existing_image_ids = self.request.data.getlist("existing_image_ids")
+            package_repo.update_package(
+                package,
+                serializer.validated_data,
+                images=images,
+                existing_image_ids=existing_image_ids, 
+            )
 
-        images = self.request.FILES.getlist("images")
-        existing_image_ids = self.request.data.getlist("existing_image_ids")
-        package_repo.update_package(
-            package,
-            serializer.validated_data,
-            images=images,
-            existing_image_ids=existing_image_ids, 
-        )
-
-        serializer.instance = package
+            serializer.instance = package
+        except ImageUploadError:
+            raise ValidationError({"image":"Image upload failed. Please try again."})
+        
+        except ValueError as e:
+            raise ValidationError({"error":str(e)})
 
 class AgencyPackageListView(APIView):
     permission_classes = [IsAuthenticated, IsVerifiedAgency]

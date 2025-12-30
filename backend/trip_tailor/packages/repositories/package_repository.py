@@ -2,6 +2,7 @@ from packages.models import Package, PackageImage
 from users.infra.services.cloudinary_service import CloudinaryService
 from django.db.models.functions import Coalesce
 from django.db.models import Avg, Count, Value
+from django.db import transaction
 
 from django.shortcuts import get_object_or_404
 
@@ -10,23 +11,24 @@ class PackageRepository:
         if Package.objects.filter(agency = agency, title = data["title"], is_deleted = False).exists():
             raise ValueError("You already have a package with this title.")
         
-        package = Package.objects.create(
-            agency = agency,
-            title = data["title"],
-            price = data["price"],
-            duration = data["duration"],
-            description = data.get("description", ""),
-            main_image = CloudinaryService.upload_image(data["main_image"])
-            if data.get("main_image") else None,
-        )
+        with transaction.atomic():
+            package = Package.objects.create(
+                agency = agency,
+                title = data["title"],
+                price = data["price"],
+                duration = data["duration"],
+                description = data.get("description", ""),
+                main_image = CloudinaryService.upload_image(data["main_image"])
+                if data.get("main_image") else None,
+            )
 
-        if images:
-            for img in images:
-                PackageImage.objects.create(
-                    package = package, image_url = CloudinaryService.upload_image(img)
-                )
+            if images:
+                for img in images:
+                    PackageImage.objects.create(
+                        package = package, image_url = CloudinaryService.upload_image(img)
+                    )
 
-        return package
+            return package
     
     def update_package(self, package: Package, data: dict, images: list = None, existing_image_ids: list = None):
         package.title = data.get("title", package.title)
@@ -34,25 +36,27 @@ class PackageRepository:
         package.duration = data.get("duration", package.duration)
         package.description = data.get("description", package.description)
 
-        if data.get("main_image"):
-            package.main_image = CloudinaryService.upload_image(data["main_image"])
+        with transaction.atomic:
 
-        package.save()
+            if data.get("main_image"):
+                package.main_image = CloudinaryService.upload_image(data["main_image"])
 
-        if existing_image_ids is not None:
-            existing_image_ids = [int(i) for i in existing_image_ids if i.isdigit()]
+            package.save()
 
-            PackageImage.objects.filter(package=package).exclude(
-                id__in=existing_image_ids
-            ).delete()
+            if existing_image_ids is not None:
+                existing_image_ids = [int(i) for i in existing_image_ids if i.isdigit()]
 
-        if images:
-            for img in images:
-                PackageImage.objects.create(
-                    package = package, image_url = CloudinaryService.upload_image(img)
-                )
+                PackageImage.objects.filter(package=package).exclude(
+                    id__in=existing_image_ids
+                ).delete()
 
-        return package
+            if images:
+                for img in images:
+                    PackageImage.objects.create(
+                        package = package, image_url = CloudinaryService.upload_image(img)
+                    )
+
+            return package
     
     def get_all_listed(self):
         return (

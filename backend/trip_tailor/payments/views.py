@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from django.contrib.auth import get_user_model
 from django.db.models import Sum, Count
+from django.db import transaction
 
 from rest_framework import status, generics, permissions, filters
 from rest_framework.views import APIView
@@ -55,8 +56,6 @@ def stripe_webhook(request):
         logger.error("⚠️ Invalid Stripe signature")
         return HttpResponse(status=400)
     
-    booking_repo = BookingRepository()
-    
     #handle the event type
     if event["type"] == "checkout.session.completed":
         session = event["data"]["object"]
@@ -71,17 +70,17 @@ def stripe_webhook(request):
 
 
         # Get transaction linked to this session
-        transaction = PaymentRepository.get_transaction_by_session_id(session_id)
-        if not transaction:
+        txn = PaymentRepository.get_transaction_by_session_id(session_id)
+        if not txn:
             logger.error(f"⚠️ Transaction not found for session {session_id}")
             return HttpResponse(status=400)
 
-        if transaction.status == TransactionStatus.COMPLETED:
-            logger.info(f"⚠️ Transaction {transaction.id} already completed, ignoring duplicate webhook.")
+        if txn.status == TransactionStatus.COMPLETED:
+            logger.info(f"⚠️ Transaction {txn.id} already completed, ignoring duplicate webhook.")
             return HttpResponse(status=200)
         
         # Update related booking payment status
-        booking = booking_repo.get_by_id(booking_id)
+        booking = BookingRepository.get_by_id(booking_id)
         if not booking:
             logger.error(f"⚠️ Booking not found for ID {booking_id}")
             return HttpResponse(status=400)
@@ -94,10 +93,11 @@ def stripe_webhook(request):
             logger.warning(f"⚠️ Could not retrieve payment intent details: {str(e)}")
 
         #update both statuses
-        PaymentRepository.update_transaction_status(transaction, TransactionStatus.COMPLETED, payment_intent)
-        booking_repo.update_payment_status(booking,PaymentStatus.PAID)
+        with transaction.atomic():
+            PaymentRepository.update_transaction_status(txn, TransactionStatus.COMPLETED, payment_intent)
+            BookingRepository.update_payment_status(booking,PaymentStatus.PAID)
 
-        logger.info(f"✅ Payment successful for Booking #{booking_id}")
+            logger.info(f"✅ Payment successful for Booking #{booking_id}")
 
     elif event["type"] == "payment_intent.payment_failed":
         intent = event["data"]["object"]
@@ -105,9 +105,9 @@ def stripe_webhook(request):
         logger.warning(f"❌ Payment failed for intent: {payment_intent_id}")
 
         # mark transaction as failed
-        transaction = PaymentRepository.get_transaction_by_payment_intent(payment_intent_id)
-        if transaction:
-            PaymentRepository.update_transaction_status(transaction, TransactionStatus.FAILED)
+        txn = PaymentRepository.get_transaction_by_payment_intent(payment_intent_id)
+        if txn:
+            PaymentRepository.update_transaction_status(txn, TransactionStatus.FAILED)
             logger.warning(f"❌ Payment failed for session {session_id}")
     
     elif event["type"] == "refund.updated":
