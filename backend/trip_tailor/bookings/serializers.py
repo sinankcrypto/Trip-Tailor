@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from django.utils import timezone
+from datetime import timedelta
 from .models import Booking
 from reviews.models import Review
 from core.constants import BookingStatus, PaymentStatus
@@ -122,5 +124,12 @@ class BookingStatusUpdateSerializer(serializers.ModelSerializer):
         if value == BookingStatus.COMPLETED:
             if not (user.is_staff or hasattr(user, "agency_profile")):
                 raise serializers.ValidationError("Only staff or agency can mark as completed")
+            
+            date = self.instance.date
+            duration = self.instance.package.duration
+            if timezone.localdate() < date + timedelta(duration):
+                raise serializers.ValidationError(
+                    "Booking can only be marked completed after the travel period ends."
+                )
             
         return value

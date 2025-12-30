@@ -107,7 +107,10 @@ export default function ChatLayout({
             >
               <p>{msg.content}</p>
               <p className="text-xs mt-2 opacity-70">
-                {new Date(msg.timestamp).toLocaleTimeString()}
+                {new Date(msg.timestamp).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </p>
             </div>
           </div>

@@ -101,14 +101,15 @@ const AgencyBookingsPage = () => {
                     )}
 
                     {/* Complete Booking */}
-                    {b.booking_status === "ACTIVE" && (
-                      <button
-                        onClick={() => handleBookingStatusChange(b.id, "COMPLETED")}
-                        disabled={statusLoading}
-                        className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50 transition"
-                      >
-                        {statusLoading ? "Updating..." : "Mark Completed"}
-                      </button>
+                    {b.booking_status === "ACTIVE" &&
+                      new Date().setHours(0, 0, 0, 0) >= new Date(b.date).setHours(0, 0, 0, 0) && (
+                        <button
+                          onClick={() => handleBookingStatusChange(b.id, "COMPLETED")}
+                          disabled={statusLoading}
+                          className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50 transition"
+                        >
+                          {statusLoading ? "Updating..." : "Mark Completed"}
+                        </button>
                     )}
 
                     {/* Reopen Cancelled */}
