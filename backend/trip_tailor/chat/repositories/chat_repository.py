@@ -57,7 +57,7 @@ class ChatRepository:
     
     @staticmethod
     def mark_messages_as_read(session: ChatSession, reader):
-        """Mark all unread messages from other persion as read"""
+        """Mark all unread messages from other person as read"""
         count = session.messages.filter(is_read=False).exclude(sender=reader).update(is_read=True)
         if count:
             logger.info("Marked %s messages as read in session %s by %s", count, session.id, reader)

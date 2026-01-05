@@ -55,3 +55,12 @@ class RefundStatus(StrEnum):
     @classmethod
     def choices(cls):
         return to_choices(cls)
+    
+class ActionChoices(StrEnum):
+    VIEW = "VIEW"
+    BOOK = "BOOK"
+    SEARCH = "SEARCH"
+
+    @classmethod
+    def choices(cls):
+        return to_choices(cls)

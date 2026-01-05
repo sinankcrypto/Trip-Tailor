@@ -13,8 +13,9 @@ from .repositories.package_repository import PackageRepository
 from .filters import PackageFilter
 from agency_app.permissions import IsVerifiedAgency, IsAdminOrVerifiedAgency
 from core.exceptions import ImageUploadError
-
+from recommendations.repository.interaction_repository import InteractionRepository
 from core.pagination import StandardResultsSetPagination
+from core.constants import ActionChoices
 
 # Create your views here.
 
@@ -110,6 +111,17 @@ class PackageDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return package_repo.get_all_listed()
+    
+    def retrieve(self, request, *args, **kwargs):   
+        respone = super().retrieve(request, *args, **kwargs)
+
+        if request.user.is_authenticated:
+            InteractionRepository().create_view_if_needed(
+                user=request.user,
+                package=self.get_object()
+            )
+        
+        return respone
     
 # User Side
 

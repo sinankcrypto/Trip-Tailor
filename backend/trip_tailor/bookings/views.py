@@ -23,6 +23,8 @@ from core.constants import BookingStatus, PaymentStatus, PaymentMethod
 from payments.repository.payment_repository import PaymentRepository
 from payments.repository.refund_repository import RefundRepository
 from payments.repository.payment_settings_repository import PaymentSettingsRepository
+from recommendations.repository.interaction_repository import InteractionRepository
+from core.constants import ActionChoices
 
 import logging
 
@@ -96,10 +98,15 @@ class BookingViewSet(viewsets.ModelViewSet):
         if not status_info:
             raise serializers.ValidationError("Agency has not completed Stripe onboarding")
         
-
-        booking = serializer.save()
-        logger.info("New booking created: ID=%s by user=%s", booking.id, booking.user.id)
-        send_booking_confirmation_email_task.delay(booking.id)
+        with transaction.atomic():
+            booking = serializer.save()
+            InteractionRepository().create(
+                user=user,
+                action=ActionChoices.BOOK,
+                package=booking.package
+            )
+            logger.info("New booking created: ID=%s by user=%s", booking.id, booking.user.id)
+            send_booking_confirmation_email_task.delay(booking.id)
 
     @action(detail=True, methods=["post"])
     def cancel(self, request, pk=None):
