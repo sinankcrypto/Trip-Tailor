@@ -1,7 +1,11 @@
 from celery import shared_task
 from core.utils.email_utils import (send_otp_email, send_booking_confirmation_email, 
-                                    send_refund_failed_email, send_refund_success_email, send_refund_initiated_email)
+                                    send_refund_failed_email, send_refund_success_email, send_refund_initiated_email,
+                                    send_agency_booking_notification_email)
 from bookings.models import Booking
+import logging
+
+logger = logging.Logger(__name__)
 
 @shared_task
 def send_otp_email_task(email, otp):
@@ -60,3 +64,12 @@ def send_refund_initiated_email_task(
         package_name=package_name,
         amount=amount,
     )
+
+@shared_task(bind=True, max_retries=3)
+def send_agency_booking_notification_email_task(self, booking_id):
+    try:
+        booking = Booking.objects.select_related('agency', 'package').get(id=booking_id)
+        send_agency_booking_notification_email(booking)
+        logging.info("Booking notification email succesfully sent to agency")
+    except Exception as e:
+        self.retry(exc=e, countdown=30)

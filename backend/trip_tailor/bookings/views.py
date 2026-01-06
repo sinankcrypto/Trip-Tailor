@@ -18,7 +18,7 @@ from agency_app.permissions import IsVerifiedAgency
 
 from django_filters.rest_framework import DjangoFilterBackend
 
-from core.tasks import send_booking_confirmation_email_task
+from core.tasks import send_booking_confirmation_email_task, send_agency_booking_notification_email_task
 from core.constants import BookingStatus, PaymentStatus, PaymentMethod
 from payments.repository.payment_repository import PaymentRepository
 from payments.repository.refund_repository import RefundRepository
@@ -107,6 +107,8 @@ class BookingViewSet(viewsets.ModelViewSet):
             )
             logger.info("New booking created: ID=%s by user=%s", booking.id, booking.user.id)
             send_booking_confirmation_email_task.delay(booking.id)
+            send_agency_booking_notification_email_task.delay(booking.id)
+
 
     @action(detail=True, methods=["post"])
     def cancel(self, request, pk=None):

@@ -135,3 +135,41 @@ We’ll notify you once the refund is completed.
 """.strip()
     
     send_email(subject, message, [user_email])
+
+def send_agency_booking_notification_email(booking):
+    agency = booking.package.agency
+    package = booking.package
+    user = booking.user
+
+    email = agency.user.email  
+
+    subject = "New Booking Received – Trip Tailor"
+    message = f"""
+Hi {agency.agency_name},
+
+You have received a new booking on Trip Tailor 🎉
+
+Booking Details:
+- Booking ID: {booking.id}
+- Package: {package.title}
+- Travel Duration: {package.duration} days
+- Price: ₹{booking.amount}
+
+Customer Information:
+- Name: {user.username}
+- Email: {user.email}
+
+Booking Date:
+- {booking.created_at.strftime('%d %b %Y')}
+
+Please review this booking and prepare accordingly.
+You can manage this booking from your agency dashboard.
+
+Thank you for partnering with Trip Tailor.
+
+Best regards,
+The Trip Tailor Team
+support@triptailor.com
+"""
+
+    send_email(subject, message, [email])
