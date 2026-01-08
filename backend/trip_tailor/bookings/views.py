@@ -100,7 +100,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         
         with transaction.atomic():
             booking = serializer.save()
-            InteractionRepository().create(
+            InteractionRepository.create(
                 user=user,
                 action=ActionChoices.BOOK,
                 package=booking.package

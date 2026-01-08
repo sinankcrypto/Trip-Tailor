@@ -6,6 +6,7 @@ from packages.models import Package
 from django.db.models import Q, Count
 
 class InteractionRepository:
+    @staticmethod
     def create(self, user, action, package=None, metadata=None):
         return UserInteraction.objects.create(
             user=user,
@@ -14,11 +15,13 @@ class InteractionRepository:
             metadata=metadata
         )
     
+    @staticmethod
     def recent_by_user(self, user, limit=50):
         return UserInteraction.objects.filter(
             user=user
         ).order_by("-created_at")[:limit]
     
+    @staticmethod
     def has_booked(self, user, package):
         return UserInteraction.objects.filter(
             user=user,
@@ -26,6 +29,7 @@ class InteractionRepository:
             action=ActionChoices.BOOK
         ).exists()
 
+    @staticmethod
     def create_view_if_needed(self, user, package, window_minutes=15):
         since = timezone.now() - timedelta(minutes=window_minutes)
 
