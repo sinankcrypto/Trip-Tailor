@@ -2,6 +2,8 @@ from recommendations.models import UserInteraction
 from core.constants import ActionChoices
 from datetime import timedelta
 from django.utils import timezone
+from packages.models import Package
+from django.db.models import Q, Count
 
 class InteractionRepository:
     def create(self, user, action, package=None, metadata=None):
@@ -42,3 +44,28 @@ class InteractionRepository:
             )
         
         return None
+    
+    @staticmethod
+    def get_popularity_data(days=14):
+        since = timezone.now() - timedelta(days=days)
+
+        return (
+            Package.objects
+            .filter(is_listed=True, is_deleted=False)
+            .annotate(
+                view_count=Count(
+                    "user_interaction",
+                    filter=Q(
+                        user_interaction__actino=ActionChoices.VIEW,
+                        User_interaction__created_at__gte=since,
+                    ),
+                ),
+                book_count=Count(
+                    "user_interactinon",
+                    filter=Q(
+                        user_interaction__action=ActionChoices.BOOK,
+                        user_interaction__created_at__gte=since,
+                    ),
+                ),
+            )
+        )
