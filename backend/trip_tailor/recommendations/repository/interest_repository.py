@@ -1,8 +1,10 @@
 from recommendations.models import Interest
 
 class InterestRepository:
-    def get_all(self):
+    @staticmethod
+    def get_all():
         return Interest.objects.all()
     
-    def get_by_slugs(self, slugs):
+    @staticmethod
+    def get_by_slugs(slugs):
         return Interest.objects.fiter(slug__in=slugs)

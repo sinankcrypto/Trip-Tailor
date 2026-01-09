@@ -7,30 +7,7 @@ from django.db.models import Q, Count
 
 class InteractionRepository:
     @staticmethod
-    def create(self, user, action, package=None, metadata=None):
-        return UserInteraction.objects.create(
-            user=user,
-            action=action,
-            package=package,
-            metadata=metadata
-        )
-    
-    @staticmethod
-    def recent_by_user(self, user, limit=50):
-        return UserInteraction.objects.filter(
-            user=user
-        ).order_by("-created_at")[:limit]
-    
-    @staticmethod
-    def has_booked(self, user, package):
-        return UserInteraction.objects.filter(
-            user=user,
-            package=package,
-            action=ActionChoices.BOOK
-        ).exists()
-
-    @staticmethod
-    def create_view_if_needed(self, user, package, window_minutes=15):
+    def create_view(user, package, window_minutes=15):
         since = timezone.now() - timedelta(minutes=window_minutes)
 
         exists = UserInteraction.objects.filter(
@@ -48,6 +25,20 @@ class InteractionRepository:
             )
         
         return None
+    
+    @staticmethod
+    def recent_by_user(user, limit=50):
+        return UserInteraction.objects.filter(
+            user=user
+        ).order_by("-created_at")[:limit]
+    
+    @staticmethod
+    def has_booked(user, package):
+        return UserInteraction.objects.filter(
+            user=user,
+            package=package,
+            action=ActionChoices.BOOK
+        ).exists()
     
     @staticmethod
     def get_popularity_data(days=14):
@@ -72,4 +63,12 @@ class InteractionRepository:
                     ),
                 ),
             )
+        )
+
+    @staticmethod
+    def get_booked_package_ids(user):
+        return (
+            UserInteraction.objects
+            .filter(user=user, action=ActionChoices.BOOK)
+            .values_list("package_id", flat=True)
         )

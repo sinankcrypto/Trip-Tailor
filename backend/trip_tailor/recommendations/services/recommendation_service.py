@@ -3,6 +3,7 @@ from recommendations.repository.user_interest_repository import UserInterestRepo
 from recommendations.repository.package_interest_repository import PackageInterestRepository
 from django.db.models import F, Count, Q
 from django.utils import timezone
+from django.contrib.postgres.aggregates import ArrayAgg
 from datetime import timedelta
 
 class RecommendationService:
@@ -53,13 +54,20 @@ class RecommendationService:
                 
             ),
         )
+        booked_ids = InteractionRepository.get_booked_package_ids(user)
+
+        qs = qs.exclude(id__in=booked_ids)
 
         qs = qs.annotate(
             recommended_score=(
                 cls.INTEREST_WEIGHT * F("interest_match_count")+
                 cls.VIEW_WEIGHT * F("view_count")+
                 cls.BOOK_WEIGHT * F("book_count")
+            ),
+            matched_interests=ArrayAgg(
+                "package_interests__interest__name",
+                distinct=True
             )
-        ).order_by("-recommendation_score", "-created_at")
+        ).order_by("-recommended_score", "-created_at")
 
         return qs[:limit]

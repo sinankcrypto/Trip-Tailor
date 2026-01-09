@@ -3,11 +3,11 @@ from django.db import transaction
 
 class UserInterestRepository:
     @staticmethod
-    def get_by_user(self, user):
+    def get_by_user(user):
         return UserInterest.objects.filter(user=user).select_related("interest")
     
     @staticmethod
-    def set_user_interests(self, user, interests):
+    def set_user_interests(user, interests):
         with transaction.atomic():
             UserInterest.objects.filter(user=user).delete()
             UserInterest.objects.bulk_create([

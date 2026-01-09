@@ -5,8 +5,9 @@ from django.db.models import Count
 class PackageInterestRepository:
 
     @staticmethod
-    def get_by_package(self, package):
+    def get_by_package(package):
         return PackageInterest.objects.filter(package=package).select_related("interest")
+    
     @staticmethod
     def get_packages_matching_interests(interest_ids):
         return (

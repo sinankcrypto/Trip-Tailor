@@ -116,7 +116,7 @@ class PackageDetailView(generics.RetrieveAPIView):
         respone = super().retrieve(request, *args, **kwargs)
 
         if request.user.is_authenticated:
-            InteractionRepository.create_view_if_needed(
+            InteractionRepository.create_view(
                 user=request.user,
                 package=self.get_object()
             )
