@@ -16,6 +16,7 @@ from core.exceptions import ImageUploadError
 from recommendations.repository.interaction_repository import InteractionRepository
 from core.pagination import StandardResultsSetPagination
 from core.constants import ActionChoices
+from recommendations.repository.package_interest_repository import PackageInterestRepository
 
 # Create your views here.
 
@@ -33,6 +34,12 @@ class PackageCreateView(generics.CreateAPIView):
                 images = self.request.FILES.getlist("images")
             )
             serializer.instance = package
+            interest_ids = self.request.data.get("interest_ids", [])
+            if interest_ids:
+                PackageInterestRepository.set_package_interests(
+                    package=package,
+                    itnerest_ids=interest_ids
+                )
         except ImageUploadError:
             raise ValidationError({
                 "image": "Image upload failed. Please try again."
@@ -116,9 +123,10 @@ class PackageDetailView(generics.RetrieveAPIView):
         respone = super().retrieve(request, *args, **kwargs)
 
         if request.user.is_authenticated:
-            InteractionRepository.create_view(
+            InteractionRepository.create(
                 user=request.user,
-                package=self.get_object()
+                action=ActionChoices.VIEW,
+                package=self.get_object(),
             )
         
         return respone

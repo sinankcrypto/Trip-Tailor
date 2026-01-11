@@ -17,6 +17,8 @@ class UserInteraction(models.Model):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["user", "action"]),
+            models.Index(fields=["package", "action"]),
+            models.Index(fields=["created_at"]),
         ]
     def __str__(self):
         return f"{self.user} - {self.action}"
@@ -27,6 +29,9 @@ class Interest(models.Model):
 
     class Meta:
         ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(fields=["name"], name="unique_interest_name")
+        ]
 
     def __str__(self):
         return self.name
@@ -38,6 +43,9 @@ class UserInterest(models.Model):
 
     class Meta:
         unique_together = ("user","interest")
+        indexes = [
+            models.Index(fields=["user"]),
+        ]
 
     def __str__(self):
         return f"{self.user} -> {self.interest}" 
@@ -56,6 +64,10 @@ class PackageInterest(models.Model):
     
     class Meta:
         unique_together = ("package","interest")
+        indexes = [
+            models.Index(fields=["interest"]),
+            models.Index(fields=["package"]),
+        ]
 
     def __str__(self):
         return f"{self.package} -> {self.interest}"

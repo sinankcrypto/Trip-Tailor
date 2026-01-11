@@ -6,24 +6,24 @@ from packages.models import Package
 from django.db.models import Q, Count
 
 class InteractionRepository:
-    @staticmethod
-    def create_view(user, package, window_minutes=15):
-        since = timezone.now() - timedelta(minutes=window_minutes)
 
-        exists = UserInteraction.objects.filter(
+    @staticmethod
+    def exists_recent(user, action, package, since):
+        return UserInteraction.objects.filter(
             user=user,
+            action=action,
             package=package,
-            action=ActionChoices.VIEW,
             created_at__gte=since
         ).exists()
-
-        if not exists:
-            return UserInteraction.objects.create(
-                user=user,
-                package=package,
-                action=ActionChoices.VIEW
-            )
-        
+    
+    @staticmethod
+    def create(user, action, package=None, metadata=None):
+        return UserInteraction.objects.create(
+            user=user,
+            action=action,
+            package=package,
+            metadata=metadata or {}
+        )
         return None
     
     @staticmethod
