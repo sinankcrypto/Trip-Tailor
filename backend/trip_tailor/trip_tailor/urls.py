@@ -62,6 +62,7 @@ urlpatterns = [
     path('api/token/refresh-cookie/', RefreshTokenCookieView.as_view(), name='refresh-cookie'),
     path('api/chat/', include('chat.urls')),
     path('api/', include('reviews.urls')),
+    path('api/recommendations', include('recommendations.urls')),
 
 
     path("auth/", include("dj_rest_auth.urls")),
@@ -70,3 +71,9 @@ urlpatterns = [
 
     re_path(r'^docs/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+if settings.DEBUG:
+    urlpatterns += static(
+        settings.STATIC_URL,
+        document_root=settings.STATIC_ROOT
+    )
