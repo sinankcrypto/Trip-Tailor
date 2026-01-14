@@ -90,3 +90,9 @@ class PackageRepository:
     
     def get_all(self):
         return Package.objects.all().select_related("agency")
+    
+    def get_latest(self):
+        return Package.objects.filter(
+            is_deleted=False,
+            is_listed=True
+        ).order_by("-created_at")

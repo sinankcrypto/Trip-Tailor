@@ -9,23 +9,6 @@ class PackageInterestRepository:
         return PackageInterest.objects.filter(package=package).select_related("interest")
     
     @staticmethod
-    def get_packages_matching_interests(interest_ids):
-        return (
-            Package.objects
-            .filter(
-                is_listed=True,
-                is_deleted=False,
-                package_interests_id__in=interest_ids
-            )
-            .annotate(
-                interest_match_count=Count(
-                    "package_interests",
-                    distinct=True
-                )
-            )
-        )
-    
-    @staticmethod
     def set_package_interests(package, interest_ids):
         """
         Replace all interests of a package
