@@ -7,15 +7,15 @@ class UserInterestRepository:
         return UserInterest.objects.filter(user=user).select_related("interest")
     
     @staticmethod
-    def set_user_interests(user, interests):
+    def set_user_interests(user, interest_ids):
         """
-        Replace user's interests (recommended approach)
+        Replace user's interests
         """
         with transaction.atomic():
             UserInterest.objects.filter(user=user).delete()
             UserInterest.objects.bulk_create([
-                UserInterest(user=user, interest=interest)
-                for interest in interests
+                UserInterest(user=user, interest_id=interest_id)
+                for interest_id in interest_ids
             ])
 
     @staticmethod

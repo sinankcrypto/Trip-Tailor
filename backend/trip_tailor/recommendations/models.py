@@ -7,8 +7,8 @@ User = settings.AUTH_USER_MODEL
 # Create your models here.
 
 class UserInteraction(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    package = models.ForeignKey("packages.Package", on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_interaction")
+    package = models.ForeignKey("packages.Package", on_delete=models.CASCADE, null=True, blank=True, related_name="user_interaction")
     action = models.CharField(max_length=20, choices=ActionChoices.choices())
     metadata = models.JSONField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -3,8 +3,7 @@ from packages.serializers import PackageImageSerializer, AgencyMiniSerializer
 from packages.models import Package
 from .models import Interest, UserInteraction, PackageInterest, UserInterest
 
-class RecommendedPackageSerializer(serializers.Serializer):
-    images = PackageImageSerializer(many=True, read_only=True)
+class RecommendedPackageSerializer(serializers.ModelSerializer):
     agency = AgencyMiniSerializer(read_only=True)
 
     recommended_score = serializers.FloatField(read_only=True)
@@ -32,7 +31,7 @@ class RecommendedPackageSerializer(serializers.Serializer):
             "average_rating",
             "total_reviews",
 
-            "recommendation_score",
+            "recommended_score",
             "matched_interests",
             "view_count",
             "book_count",
@@ -40,7 +39,7 @@ class RecommendedPackageSerializer(serializers.Serializer):
             "created_at",
         ]
 
-class InterestSerializer(serializers.Serializer):
+class InterestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Interest
         fields = ["id", "name"]

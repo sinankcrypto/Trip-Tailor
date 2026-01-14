@@ -1,4 +1,4 @@
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 
@@ -28,18 +28,20 @@ class PackageCreateView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         try:
-            package = package_repo.create_package(
-                agency = self.request.user.agency_profile,  
-                data = serializer.validated_data,
-                images = self.request.FILES.getlist("images")
-            )
-            serializer.instance = package
-            interest_ids = self.request.data.get("interest_ids", [])
-            if interest_ids:
-                PackageInterestRepository.set_package_interests(
-                    package=package,
-                    itnerest_ids=interest_ids
+            interest_ids = serializer.validated_data.pop("interest_ids", [])
+            with transaction.atomic():
+                package = package_repo.create_package(
+                    agency = self.request.user.agency_profile,  
+                    data = serializer.validated_data,
+                    images = self.request.FILES.getlist("images")
                 )
+                serializer.instance = package
+
+                if interest_ids:
+                    PackageInterestRepository.set_package_interests(
+                        package=package,
+                        interest_ids=interest_ids
+                    )
         except ImageUploadError:
             raise ValidationError({
                 "image": "Image upload failed. Please try again."
@@ -58,14 +60,22 @@ class PackageUpdateView(generics.UpdateAPIView):
         package = self.get_object()
         
         try:
+            interest_ids = serializer.validated_data.pop("interest_ids",None)
+
             images = self.request.FILES.getlist("images")
             existing_image_ids = self.request.data.getlist("existing_image_ids")
-            package_repo.update_package(
-                package,
-                serializer.validated_data,
-                images=images,
-                existing_image_ids=existing_image_ids, 
-            )
+            with transaction.atomic():
+                package_repo.update_package(
+                    package,
+                    serializer.validated_data,
+                    images=images,
+                    existing_image_ids=existing_image_ids, 
+                )
+                if interest_ids is not None:
+                    PackageInterestRepository.set_package_interests(
+                        package=package,
+                        interest_ids=interest_ids
+                    )
 
             serializer.instance = package
         except ImageUploadError:

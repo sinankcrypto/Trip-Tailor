@@ -36,7 +36,7 @@ class PackageRepository:
         package.duration = data.get("duration", package.duration)
         package.description = data.get("description", package.description)
 
-        with transaction.atomic:
+        with transaction.atomic():
 
             if data.get("main_image"):
                 package.main_image = CloudinaryService.upload_image(data["main_image"])
