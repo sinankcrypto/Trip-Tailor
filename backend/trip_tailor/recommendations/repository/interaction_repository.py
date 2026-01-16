@@ -51,12 +51,12 @@ class InteractionRepository:
                 view_count=Count(
                     "user_interaction",
                     filter=Q(
-                        user_interaction__actino=ActionChoices.VIEW,
-                        User_interaction__created_at__gte=since,
+                        user_interaction__action=ActionChoices.VIEW,
+                        user_interaction__created_at__gte=since,
                     ),
                 ),
                 book_count=Count(
-                    "user_interactinon",
+                    "user_interaction",
                     filter=Q(
                         user_interaction__action=ActionChoices.BOOK,
                         user_interaction__created_at__gte=since,

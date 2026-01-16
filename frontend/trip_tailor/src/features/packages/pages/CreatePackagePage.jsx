@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreatePackage } from "../hooks/useCreatePackage";
+import { useGetInterests } from "../hooks/useGetInterests";
 import ImageCropModal from "../../../components/ImageCropModal";
 import { getCroppedImage } from "../../../utils/cropImage";
 import toast from "react-hot-toast";
@@ -15,15 +16,25 @@ const CreatePackagePage = () => {
     main_image: null,
     images: [],
   });
+  const [selectedInterests, setSelectedInterests] = useState([]);
+  const { interests, loading: interestsLoading } = useGetInterests();
 
   const [errors, setErrors] = useState({});
+
+  const toggleInterest = (interestId) => {
+    setSelectedInterests((prev) =>
+      prev.includes(interestId)
+        ? prev.filter((id) => id !== interestId)
+        : [...prev, interestId]
+    );
+  };
 
   // 🔹 cropping state
   const [cropImageSrc, setCropImageSrc] = useState(null);
   const [cropTarget, setCropTarget] = useState(null); // "main" | "sub"
   const [isCropping, setIsCropping] = useState(false);
 
-  const { handleCreate, loading } = useCreatePackage();
+  const { handleCreate, loading, error } = useCreatePackage();
   const navigate = useNavigate();
 
   /* ---------------- validation ---------------- */
@@ -125,6 +136,10 @@ const CreatePackagePage = () => {
     formData.append("price", form.price);
     formData.append("duration", form.duration);
 
+    selectedInterests.forEach((id) => {
+      formData.append("interest_ids", id);          
+    });
+
     if (form.main_image) formData.append("main_image", form.main_image);
     form.images.forEach((img) => formData.append("images", img));
 
@@ -133,6 +148,7 @@ const CreatePackagePage = () => {
       toast.success("Package created successfully! 🎉");
       navigate("/agency/my-packages");
     } catch (err) {
+      console.error(err.response?.data);
       toast.error(err.response?.data?.detail || "Failed to create package ❌");
     }
   };
@@ -176,6 +192,34 @@ const CreatePackagePage = () => {
           />
           {errors.description && (
             <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+          )}
+        </div>
+        {/* Interests */}
+        <div>
+          <label className="block font-medium mb-2">
+            Package Interests
+          </label>
+
+          {interestsLoading ? (
+            <p className="text-sm text-gray-500">Loading interests...</p>
+          ) : (
+            <div className="flex flex-wrap gap-3">
+              {interests.map((interest) => (
+                <button
+                  key={interest.id}
+                  type="button"
+                  onClick={() => toggleInterest(interest.id)}
+                  className={`px-4 py-2 rounded-full text-sm border transition
+                    ${
+                      selectedInterests.includes(interest.id)
+                        ? "bg-green-600 text-white border-green-600"
+                        : "bg-white text-gray-700 border-gray-300 hover:bg-green-50"
+                    }`}
+                >
+                  {interest.name}
+                </button>
+              ))}
+            </div>
           )}
         </div>
 

@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import RecommendedPackageSerializer, InterestSerializer, UserInterestCreateSerializer
+from .serializers import RecommendedPackageSerializer, InterestSerializer, UserInterestCreateSerializer, UserInterestSerializer
 from rest_framework.permissions import IsAuthenticated
 from core.pagination import StandardResultsSetPagination
 from .services.recommendation_service import RecommendationService
@@ -43,3 +43,13 @@ class UserInterestView(APIView):
             {"detail": "Interests saved succesfully"},
             status=status.HTTP_201_CREATED         
         )
+    
+    def get(self, request):
+        user = request.user
+
+        try:
+            interests = UserInterestRepository.get_by_user(user)
+        except Exception as e:
+            return Response({"detail":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response(UserInterestSerializer(interests, many=True).data, status=status.HTTP_200_OK)

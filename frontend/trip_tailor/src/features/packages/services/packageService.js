@@ -1,3 +1,4 @@
+import { ArrowUpCircleIcon } from "lucide-react";
 import apiClient from "../../../api/apiClient"
 
 export const getMyPackages = async () => {
@@ -48,3 +49,13 @@ export const getAllPackages = async (filters) => {
   const response = await apiClient.get(`/packages/admin-panel/packages/?${params}`);
   return response.data;
 };
+
+export const getRecommendedPackages = async () => {
+    const res = await apiClient.get("/recommendations/packages/");
+    return res.data.results;
+};
+
+export const getInterests = async () => {
+    const res = await apiClient.get("/recommendations/interests");
+    return res.data.results;
+}

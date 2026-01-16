@@ -62,8 +62,15 @@ class PackageInterestInputSerializer(serializers.Serializer):
         allow_empty=False
     )
 
-class UserInteractionSerializer(serializers.Serializer):
+class UserInteractionSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserInteraction
         fields = "__all__"
         read_only_fields = ["user", "created_at"]
+
+class UserInterestSerializer(serializers.ModelSerializer):
+    interest = InterestSerializer(read_only=True)
+
+    class Meta:
+        model = UserInterest
+        fields = ["id", "interest"]

@@ -18,3 +18,13 @@ export const updateProfile= async (payload) => {
     })
     return res.data;
 }
+
+export const createUserInterests = async ({ interest_ids }) => {
+    const res = await apiClient.post("/recommendations/interests/user/", { interest_ids })
+    return res.data;
+}
+
+export const getUserInterests = async () => {
+    const res = await apiClient.get("/recommendations/interests/user/");
+    return res.data;
+};
