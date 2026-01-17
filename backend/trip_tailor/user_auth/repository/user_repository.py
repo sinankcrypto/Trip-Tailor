@@ -45,3 +45,7 @@ class UserRepository:
     def count_of_all_users():
         return UserRepository.get_all_users().count()
     
+    @staticmethod
+    def check_user_exists(email):
+        return User.objects.filter(email=email, is_deleted=False).exists()
+    

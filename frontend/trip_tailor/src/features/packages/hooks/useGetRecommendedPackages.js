@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getRecommendedPackages } from "../services/packageService";
 
-export const useGetRecommendedPackages = () => {
+export const useGetRecommendedPackages = (refetchKey = 0) => {
     const [packages, setPackages] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
@@ -21,7 +21,7 @@ export const useGetRecommendedPackages = () => {
         }
 
         fetchRecommended();
-    },[]);
+    },[refetchKey]);
 
     return { packages, loading, error};
 };

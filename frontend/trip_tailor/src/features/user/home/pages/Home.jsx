@@ -17,11 +17,14 @@ const Home = () => {
   const { user, clearUser } = useUserStore();
   const [showDropdown, setShowDropdown] = useState(false);
 
+  const [recommendationKey, setRecommendationKey] = useState(0);
+  const [interestKey, setInterestKey] = useState(0);
+
   const {
     packages: recommendedPackages,
     loading: recommendedLoading,
     error: recommendedError,
-  } = useGetRecommendedPackages();  
+  } = useGetRecommendedPackages(recommendationKey);  
 
   const {
     packages: latestPackages,
@@ -37,7 +40,7 @@ const Home = () => {
   const {
     hasInterests,
     loading: interestsLoading,
-  } = useGetUserInterests(!!user);
+  } = useGetUserInterests(!!user, interestKey);
 
   const [showInterestsModal, setShowInterestsModal] = useState(false);
   
@@ -214,7 +217,8 @@ const Home = () => {
         onClose={() => setShowInterestsModal(false)}
         onSuccess={() => {
           setShowInterestsModal(false);
-          // optionally refetch interests here if needed
+          setInterestKey((prev) => prev + 1);
+          setRecommendationKey((prev) => prev + 1);
         }}
       />
     </div>

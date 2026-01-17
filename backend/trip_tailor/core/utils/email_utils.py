@@ -9,28 +9,34 @@ def send_email(subject, message, recipient_list):
         fail_silently= False,
     )
 
-def send_otp_email(email, otp):
+def send_otp_email(email: str, otp: str, validity_minutes: int = 10):
     subject = "Your Trip Tailor OTP"
     message = f"""
-    Dear User,
+Dear User,
 
-    Thank you for signing up with Trip Tailor!
+Thank you for choosing Trip Tailor!
 
-    To complete your verification process, please use the One-Time Password (OTP) below. 
-    This code is valid for the next 10 minutes.
+To proceed, please use the One-Time Password (OTP) below.
+This OTP is valid for the next {validity_minutes} minutes.
 
-    🔒 Your OTP: {otp}
+🔒 Your OTP: {otp}
 
-    Please do not share this code with anyone. Trip Tailor representatives will never ask 
-    for your OTP or password.
+For your security:
+• Do not share this OTP with anyone
+• Trip Tailor staff will never ask for your OTP or password
 
-    If you did not request this verification, please ignore this email.
+If you did not request this, please ignore this email.
 
-    Best regards,  
-    The Trip Tailor Team  
-    support@triptailor.com  
-    """
-    send_email(subject, message, [email])
+Best regards,
+The Trip Tailor Team
+support@triptailor.com
+"""
+
+    send_email(
+        subject=subject,
+        message=message,
+        recipient_list=[email]
+    )
 
 def send_booking_confirmation_email(booking):
     user = booking.user

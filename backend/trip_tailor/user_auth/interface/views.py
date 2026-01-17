@@ -1,3 +1,5 @@
+import uuid
+from django.core.cache import cache
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -7,7 +9,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 
 from .serializers import (UserLoginSerializer, UserSignupSerializer, OTPVerifySerializer, 
-                          CustomUserSerializer, GoogleLoginSerializer)
+    CustomUserSerializer, GoogleLoginSerializer, ForgotPasswordSerializer, ResetPasswordSerializer)
 from ..repository.user_repository import UserRepository
 from ..repository.emailOTP_repository import EmailOTPRepository
 
@@ -18,7 +20,7 @@ from django.utils import timezone
 from ..domain.models import EmailOTP, CustomUser
 
 from core.tasks import send_otp_email_task
-from core.utils.otp_utils import can_resend_otp, generate_otp
+from core.utils.otp_utils import can_resend_otp, generate_otp, create_otp_for_email
 
 import logging
 import requests
@@ -89,7 +91,7 @@ class UserSignupView(APIView):
         if serializer.is_valid():
             user = serializer.save()
 
-            otp = f"{randint(100000,999999)}"
+            otp = generate_otp()
             EmailOTPRepository.create(
                 email=user.email.lower().strip(),
                 otp=otp,
@@ -305,5 +307,108 @@ class GoogleLoginView(APIView):
 
         return response
 
+class ForgotPassordAPIView(APIView):
+    """
+    send otp to user's email for password reset
+    """
+    def post(self, request):
+        serializer = ForgotPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
+        email = serializer.validated_data["email"]
+        
+        user_exists = UserRepository.check_user_exists(email)
 
+        allowed, reason = can_resend_otp(email)
+        if not allowed:
+            return Response(
+                {"error": reason}, status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+        
+        if user_exists:
+            otp_obj = create_otp_for_email(email)
+            send_otp_email_task.delay(email, otp_obj.otp)
+
+        return Response(
+            {"message": "An OTP has been sent to the given email"},status=status.HTTP_200_OK
+        )
+    
+class VerifyResetOTPView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = OTPVerifySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data["email"]
+        otp = serializer.validated_data["otp"]
+
+        otp_obj = EmailOTPRepository.get_latest_by_email(email)
+
+        if not otp_obj or otp_obj.is_expired() or otp_obj.otp != otp:
+            return Response(
+                {"detail": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        user = UserRepository.get_user_by_email(email)
+
+        if not user:
+            return Response(
+                {"detail": "User not found"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if not user.is_active:
+            user.is_active = True
+            user.save(update_fields=['is_active'])
+
+        cache.set(f"password_reset_allowed:{email}", True, timeout=300)
+
+        EmailOTPRepository.delete_by_email(email)
+
+        return Response(
+            {
+                "message": "OTP verified successfully"
+            }, 
+            status=status.HTTP_200_OK
+        )
+    
+class ResetPasswordAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        if not serializer.is_valid():
+            logger.warning(f"invalid reset password payload: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        email = serializer.validated_data["email"].lower().strip()
+        new_password = serializer.validated_data["new_password"]
+
+        cache_key = f"password_reset_allowed:{email}"
+
+        if not cache.get(cache_key):
+            logger.warning(f"unauthorized password reset attempt for {email}")
+            return Response(
+                {"detail":"Password reset not allowed or session expired. please verify OTP again"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        user = UserRepository.get_user_by_email(email)
+        if not user:
+            logger.warning(f"Password reset attempted for non existing email: {email}")
+            return Response(
+                {"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        user.set_password(new_password)
+        user.save(update_fields=["password"])
+
+        cache.delete(cache_key)
+
+        return Response(
+            {
+                "message": "Password reset successful", 
+                "detail": "You can now login with your new password."
+            },
+            status=status.HTTP_200_OK
+        )

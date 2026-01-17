@@ -90,3 +90,16 @@ class GoogleLoginSerializer(serializers.Serializer):
     token = serializers.CharField(required = True)
     role = serializers.ChoiceField(choices = ['user','agency'], default = 'user', required = False)
 
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+class ResetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    new_password = serializers.CharField(min_length=8)
+    confirm_password = serializers.CharField(min_length=8)
+
+    def validate(self, data):
+        if data["new_password"] != data["confirm_password"]:
+            return serializers.ValidationError("passwords do not match")
+        
+        return data

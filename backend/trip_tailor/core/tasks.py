@@ -7,9 +7,12 @@ import logging
 
 logger = logging.Logger(__name__)
 
-@shared_task
-def send_otp_email_task(email, otp):
-    send_otp_email(email, otp)
+@shared_task(bind=True, max_retries=3)
+def send_otp_email_task(self, email: str, otp: str):
+    try:
+        send_otp_email(email, otp)
+    except Exception as exc:
+        raise self.retry(exc=exc, countdown=5)
 
 @shared_task(bind=True, max_retries=3)
 def send_booking_confirmation_email_task(self, booking_id):

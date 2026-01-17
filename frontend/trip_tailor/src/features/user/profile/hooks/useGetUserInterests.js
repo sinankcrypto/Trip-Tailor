@@ -1,7 +1,7 @@
 import { getUserInterests } from "../services/profileService";
 import { useState, useEffect } from "react";
 
-export const useGetUserInterests = (enabled = true) => {
+export const useGetUserInterests = (enabled = true, refetchKey = 0) => {
   const [interests, setInterests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,7 +24,7 @@ export const useGetUserInterests = (enabled = true) => {
     };
 
     fetchInterests();
-  }, [enabled]);
+  }, [enabled, refetchKey]);
 
   return {
     interests,
