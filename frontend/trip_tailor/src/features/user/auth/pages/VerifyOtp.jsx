@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useOtpVerification } from '../hooks/useOTPVerification'
+import { useResetVerifyOtp } from '../hooks/useResetVerifyOtp'
 import { useOtpResend } from '../hooks/useOtpResend'
 import toast from 'react-hot-toast'
 import logo from '../../../../assets/authentication/logo.png'
@@ -8,7 +9,16 @@ import logo from '../../../../assets/authentication/logo.png'
 const VerifyOtp = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
-  
+
+  const { flow } = state;
+
+  const otpHook = 
+    flow === "reset"
+      ? useResetVerifyOtp()
+      : useOtpVerification();
+
+  const { verifyOtp, isLoading: isVerifying } = otpHook;
+
   // Get email from navigation state (passed from signup/login)
   const email = state?.email;
   if (!email) {
@@ -17,7 +27,6 @@ const VerifyOtp = () => {
   }
 
   const [otp, setOtp] = useState('');
-  const { verifyOtp, isLoading: isVerifying } = useOtpVerification();
 
   // Resend hook with 30-second cooldown
   const {
@@ -36,8 +45,13 @@ const VerifyOtp = () => {
 
     const result = await verifyOtp(email, otp);
     if (result.success) {
-      toast.success(result.message || 'OTP verified successfully!');
-      navigate('/user/login');
+      if (flow === "reset") {
+        navigate("/user/reset-password", {
+          state: { email },
+        });
+      } else {
+        navigate("/user/login");
+      }
     } else {
       toast.error(result.message);
     }

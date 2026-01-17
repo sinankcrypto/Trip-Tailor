@@ -18,6 +18,8 @@ import UserBookingDetailsPage from "../../bookings/pages/UserBookingDetails";
 import UserTransactionsPage from "../../payments/pages/UserTransactions";
 import UserChatListPage from "../../chat/pages/UserMessagesPage";
 import UserChatPage from "../../chat/pages/UserChatPage"
+import ForgotPassword from "../auth/pages/ForgotPassword";
+import ResetPassword from "../auth/pages/ResetPassword";
 
 const UserRoutes = () => {
   return (
@@ -44,6 +46,8 @@ const UserRoutes = () => {
         <Route path="signup" element={<Signup/>} />
         <Route path="login" element={<Login/>} />
         <Route path="verify-otp" element={<VerifyOtp/>} />
+        <Route path="forgot-password" element={<ForgotPassword/>}/>
+        <Route path="reset-password" element={<ResetPassword/>}/> 
       </Route>
     </Routes>
       
