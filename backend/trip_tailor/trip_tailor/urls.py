@@ -28,6 +28,9 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 from django.conf import settings
 from django.conf.urls.static import static
 
+from rest_framework.routers import DefaultRouter
+from bookings.views import BookingViewSet
+
 schema_view = get_schema_view(
    openapi.Info(
       title="Trip Tailor API",
@@ -41,6 +44,9 @@ schema_view = get_schema_view(
 def health_check(request):
     return HttpResponse("OK", status=200)
 
+router = DefaultRouter(trailing_slash=False)  # ← cleaner URLs: no trailing slash
+router.register(r"bookings", BookingViewSet, basename="booking")
+
 urlpatterns = [
     path('health/', health_check),
     path('admin/', admin.site.urls),
@@ -49,10 +55,15 @@ urlpatterns = [
     path('api/agency/', include('agency_app.urls')),
     path('api/user/', include('users.interface.urls')),
     path('api/packages/', include('packages.urls')),
-    path('api/',include('bookings.urls')),
+    path("api/", include(router.urls)),
+    path('api/payments/',include('payments.urls')),
     path("api/auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),       
     path('api/token/refresh-cookie/', RefreshTokenCookieView.as_view(), name='refresh-cookie'),
+    path('api/chat/', include('chat.urls')),
+    path('api/', include('reviews.urls')),
+    path('api/recommendations/', include('recommendations.urls')),
+
 
     path("auth/", include("dj_rest_auth.urls")),
     path("auth/registration/", include("dj_rest_auth.registration.urls")),
@@ -60,3 +71,9 @@ urlpatterns = [
 
     re_path(r'^docs/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+if settings.DEBUG:
+    urlpatterns += static(
+        settings.STATIC_URL,
+        document_root=settings.STATIC_ROOT
+    )

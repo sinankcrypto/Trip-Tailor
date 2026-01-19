@@ -1,37 +1,50 @@
-import React, { useEffect, useState } from 'react'
-import DashboardStatsCard from '../../../components/agency/DashboardStatsCard'
+import React, { useEffect, useState } from "react";
+import DashboardStatsCard from "../../../components/agency/DashboardStatsCard";
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from 'recharts';
-import apiClient from '../../../api/apiClient';
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
-const data = [
-  { name: 'Mon', bookings: 5 },
-  { name: 'Tue', bookings: 8 },
-  { name: 'Wed', bookings: 3 },
-  { name: 'Thu', bookings: 7 },
-  { name: 'Fri', bookings: 10 },
-  { name: 'Sat', bookings: 6 },
-  { name: 'Sun', bookings: 9 },
-];
+import apiClient from "../../../api/apiClient";
+import { useAgencyDashboardMetrics } from "../hooks/useAgencyDashboardMetrics";
 
 const Dashboard = () => {
-  const [status, setStatus] = useState(null)
+  const [status, setStatus] = useState(null);
+  const [loadingStatus, setLoadingStatus] = useState(true);
 
+  // ✅ Agency dashboard metrics (includes weekly data)
+  const {
+    data: metrics,
+    loading: loadingMetrics,
+    error: metricsError,
+  } = useAgencyDashboardMetrics();
+
+  // Fetch agency profile status
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const res = await apiClient.get('agency/profile/status');
+        const res = await apiClient.get("agency/profile/status", {
+          withCredentials: true,
+        });
         setStatus(res.data);
       } catch (err) {
-        console.error('Error fetching profile status:', err);
+        console.error("Error fetching profile status:", err);
+      } finally {
+        setLoadingStatus(false);
       }
-    }
+    };
 
     fetchStatus();
-  }, [])
+  }, []);
 
-  if (!status) return <p>Loading...</p>;
+  if (loadingStatus || loadingMetrics) return <p>Loading...</p>;
+
+  if (!status) return <p>Unable to load profile status</p>;
 
   if (!status.profile_exists || !status.is_complete) {
     return (
@@ -41,13 +54,17 @@ const Dashboard = () => {
     );
   }
 
-  // Handle rejected status
   if (status.status === "rejected") {
     return (
       <div className="text-center text-red-600 font-semibold p-6 space-y-3">
-        <p>Your profile has been <span className="font-bold">rejected</span>.</p>
+        <p>
+          Your profile has been{" "}
+          <span className="font-bold">rejected</span>.
+        </p>
         {status.rejection_reason && (
-          <p className="italic text-red-500">Reason: {status.rejection_reason}</p>
+          <p className="italic text-red-500">
+            Reason: {status.rejection_reason}
+          </p>
         )}
         <p className="text-gray-700">
           Please edit the fields with correct information to get verified.
@@ -56,7 +73,6 @@ const Dashboard = () => {
     );
   }
 
-  // Handle pending (not verified yet)
   if (status.status === "pending") {
     return (
       <div className="text-center text-yellow-600 font-semibold p-6">
@@ -65,27 +81,64 @@ const Dashboard = () => {
     );
   }
 
-  // If verified -> show dashboard
+  // ✅ Verified agency dashboard
   if (status.is_verified) {
+    if (metricsError) {
+      return (
+        <div className="text-center text-red-600 font-semibold p-6">
+          Failed to load dashboard metrics
+        </div>
+      );
+    }
+
+    const weeklyData = metrics.weekly_data ?? [];
+
     return (
       <div className="p-6 bg-gray-50 min-h-screen font-[Lexend]">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-6">Agency Dashboard</h2>
+        <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+          Agency Dashboard
+        </h2>
 
+        {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <DashboardStatsCard title="Total Bookings" value="125" type="bookings" />
-          <DashboardStatsCard title="Total Earnings" value="₹58,000" type="earnings" />
-          <DashboardStatsCard title="Today's Bookings" value="7" type="today" />
+          <DashboardStatsCard
+            title="Total Bookings"
+            value={metrics.total_bookings}
+            type="bookings"
+          />
+
+          <DashboardStatsCard
+            title="Total Earnings"
+            value={`₹${metrics.total_earnings? metrics.total_earnings.toLocaleString():0}`}
+            type="earnings"
+          />
+
+          <DashboardStatsCard
+            title="Today's Bookings"
+            value={metrics.today_bookings ?? 0}
+            type="today"
+          />
         </div>
 
+        {/* Weekly Chart */}
         <div className="bg-white p-6 rounded-xl shadow border border-gray-200">
-          <h3 className="text-lg font-medium text-gray-700 mb-4">Weekly Booking Trends</h3>
+          <h3 className="text-lg font-medium text-gray-700 mb-4">
+            Weekly Booking Trends
+          </h3>
+
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={data}>
+            <LineChart data={weeklyData}>
               <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
-              <XAxis dataKey="name" />
-              <YAxis />
+              <XAxis dataKey="day" />
+              <YAxis allowDecimals={false} />
               <Tooltip />
-              <Line type="monotone" dataKey="bookings" stroke="#22c55e" strokeWidth={2} />
+              <Line
+                type="monotone"
+                dataKey="bookings"
+                stroke="#22c55e"
+                strokeWidth={2}
+                dot={{ r: 4 }}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -94,6 +147,6 @@ const Dashboard = () => {
   }
 
   return null;
-}
+};
 
-export default Dashboard
+export default Dashboard;

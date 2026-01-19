@@ -138,11 +138,19 @@ const MyPackagesPage = () => {
               </td>
               <td className="p-3 flex gap-2">
                 <button
+                  onClick={() => navigate(`/agency/packages/${pkg.id}`)}
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded"
+                >
+                  Details
+                </button>
+
+                <button
                   onClick={() => navigate(`/agency/packages/${pkg.id}/edit`)}
                   className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
                 >
                   Edit
                 </button>
+
                 <button
                   onClick={() => openModal("toggle", pkg)}
                   disabled={updating}
@@ -150,6 +158,7 @@ const MyPackagesPage = () => {
                 >
                   {pkg.is_listed ? "Unlist" : "List"}
                 </button>
+
                 <button
                   onClick={() => openModal("delete", pkg)}
                   disabled={deleting}

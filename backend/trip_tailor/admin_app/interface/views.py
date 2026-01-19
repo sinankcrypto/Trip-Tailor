@@ -1,16 +1,20 @@
+import calendar
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics
-from admin_app.interface.serializers import AdminLoginSerializer
+from admin_app.interface.serializers import AdminLoginSerializer, PlatformFeeSerializer, AdminDashboardMetricsSerializer
 from user_auth.repository.user_repository import UserRepository
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from user_auth.domain.models import CustomUser
 from user_auth.interface.views import CustomUserSerializer
 from agency_app.repository.agency_repository import AgencyRepository
+from bookings.repositories.booking_repository import BookingRepository
+from payments.repository.payment_repository import PaymentRepository
 from core.pagination import StandardResultsSetPagination
 
 from agency_app.models import AgencyProfile
+from payments.repository.payment_repository import PaymentRepository
 
 from django.contrib.auth import get_user_model
 
@@ -84,14 +88,6 @@ class AdminLogoutView(APIView):
         )
         return response
     
-# class UserListView(APIView):
-#     permission_classes = [IsAdminUser]
-
-#     def get(self, request):
-#         users = CustomUser.objects.filter(is_superuser= False, is_agency=False)
-#         serializer = CustomUserSerializer(users, many = True)
-
-#         return Response(serializer.data)
 
 class UserListView(generics.ListAPIView):
     queryset = UserRepository.get_all_users()
@@ -99,14 +95,6 @@ class UserListView(generics.ListAPIView):
     permission_classes = [IsAdminUser]
     pagination_class = StandardResultsSetPagination
     
-# class AgencyListView(APIView):
-#     permission_classes = [IsAdminUser]
-
-#     def get(self, request):
-#         agencies = AgencyRepository.get_all_agencies_with_profiles()
-#         serializer = CustomUserSerializer(agencies, many= True)
-
-#         return Response(serializer.data)
 
 class AgencyListView(generics.ListAPIView):
     queryset = AgencyRepository.get_all_agencies_with_profiles()
@@ -133,6 +121,7 @@ class AgencyDetailsView(APIView):
                     profile.description,
                 ]),
                 'agency_name': profile.agency_name,
+                'agency_id':profile.id,
                 'phone_number': profile.phone_number,
                 'profile_pic': request.build_absolute_uri(profile.profile_pic.url) if profile.profile_pic else None,
                 'license_document':(
@@ -210,3 +199,49 @@ class AgencyRejectView(APIView):
         
         except User.DoesNotExist:
             return Response({'detail': 'Agency not found'}, status=status.HTTP_404_NOT_FOUND)
+
+class PlatformFeeView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        fee = PaymentRepository.get_current_fee()
+        return Response({
+            "percentage":fee.percentage,
+            "minimum_fee":fee.minimum_fee
+        })
+    
+    def post(self, request):
+        fee, _ = PaymentRepository.get_or_create_fee(id=1)
+        serializer = PlatformFeeSerializer(fee, data= request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Platform fee updated successfully"})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class AdminDashboardMetricsView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        transaction_data = PaymentRepository.total_earning_and_total_platform_fee()
+
+        monthly_qs = BookingRepository.monthly_booking_stats()
+
+        monthly_bookings = []
+        for item in monthly_qs:
+            month_name = calendar.month_abbr[item["month"].month]
+            monthly_bookings.append({
+                "month": month_name,
+                "bookings": item["bookings"]
+            })
+
+        payload = {
+            "total_users": UserRepository.count_of_all_users(),
+            "total_agencies": AgencyRepository.count_of_all_agencies(),
+            "total_bookings": BookingRepository.count_of_bookings(),
+            "total_earnings": transaction_data["total_earning"],
+            "total_platform_fee": transaction_data["total_platform_fee"],
+            "monthly_bookings": monthly_bookings,
+        }
+
+        serializer = AdminDashboardMetricsSerializer(payload)
+        return Response(serializer.data)

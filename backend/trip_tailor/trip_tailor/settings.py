@@ -16,6 +16,7 @@ from datetime import timedelta
 import os
 import environ
 import cloudinary
+import stripe
 
 
 env = environ.Env(
@@ -63,12 +64,19 @@ INSTALLED_APPS = [
     'dj_rest_auth',
     'dj_rest_auth.registration',
 
+    'channels',
+
     'user_auth',
     'admin_app',
     'agency_app',
     'users',
     'packages',
     'bookings',
+    'payments',
+    'chat',
+    'notifications',
+    'reviews',
+    'recommendations',
 ]
 
 MIDDLEWARE = [
@@ -102,7 +110,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'trip_tailor.wsgi.application'
+ASGI_APPLICATION = "trip_tailor.asgi.application"
 
 
 # Database
@@ -217,10 +225,23 @@ AUTHENTICATION_BACKENDS = [
 
 SITE_ID = 1
 
-ACCOUNT_LOGIN_METHODS = {'email'}
-ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
-
+ACCOUNT_AUTHENTICATION_METHOD = "username"   # users log in with username
+ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_EMAIL_REQUIRED = True                # still require email at signup
 ACCOUNT_EMAIL_VERIFICATION = "none"
+
+# Signup fields configuration
+ACCOUNT_SIGNUP_FIELDS = ["username", "email", "password1", "password2"]
+
+# New-style configuration for dj-rest-auth (prevents deprecated warnings)
+REST_AUTH = {
+    "SIGNUP_FIELDS": {
+        "username": {"required": True},
+        "email": {"required": True},
+        "password1": {"required": True},
+        "password2": {"required": True},
+    },
+}
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
@@ -241,3 +262,67 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "Asia/Kolkata"
+
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
+STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY')
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+DOMAIN = os.getenv("FRONTEND_URL", "http://localhost:5173")
+
+stripe.api_key = STRIPE_SECRET_KEY
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,   # ← MUST be False
+    "formatters": {
+        "verbose": {
+            "format": "[{asctime}] {levelname} {name}:{lineno} | {message}",
+            "style": "{",
+            "datefmt": "%H:%M:%S",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "DEBUG",   # ← DEBUG so nothing is filtered
+    },
+    "loggers": {
+        # Force ALL your app logs
+        "bookings": {
+            "level": "DEBUG",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+        "agency_app": {
+            "level": "DEBUG",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+        # This catches any logger you forgot to name
+        "": {
+            "level": "DEBUG",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+    },
+}
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("redis", 6379)],
+        },
+    },
+}
+
+BOOKING_DATE_BUFFER_DAYS = config("BOOKING_DATE_BUFFER_DAYS", cast=int, default=5)
+INTERACTION_DEDUP_WINDOW_MINUTES = config(
+    "INTERACTION_DEDUP_WINDOW_MINUTES",
+    default=15,
+    cast=int
+)

@@ -43,6 +43,7 @@ class OTPVerifySerializer(serializers.Serializer):
 
 class CustomUserSerializer(serializers.ModelSerializer):
     agency_status = serializers.SerializerMethodField()
+    agency_name = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
@@ -53,11 +54,17 @@ class CustomUserSerializer(serializers.ModelSerializer):
             'is_active',
             'is_agency',
             'agency_status',
+            'agency_name'
         ]
 
     def get_agency_status(self, obj):
         if obj.is_agency:
             return getattr(obj.agency_profile, "status", "pending")
+        return None
+    
+    def get_agency_name(self, obj):
+        if obj.is_agency and hasattr(obj, 'agency_profile'):
+            return getattr(obj.agency_profile, "agency_name", None)
         return None
 
 class AgencyListSerializer(serializers.ModelSerializer):
@@ -83,3 +90,16 @@ class GoogleLoginSerializer(serializers.Serializer):
     token = serializers.CharField(required = True)
     role = serializers.ChoiceField(choices = ['user','agency'], default = 'user', required = False)
 
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+class ResetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    new_password = serializers.CharField(min_length=8)
+    confirm_password = serializers.CharField(min_length=8)
+
+    def validate(self, data):
+        if data["new_password"] != data["confirm_password"]:
+            return serializers.ValidationError("passwords do not match")
+        
+        return data

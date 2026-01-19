@@ -1,5 +1,5 @@
-// pages/UserBookingsPage.jsx
 import React, { useState } from "react";
+import toast from "react-hot-toast";
 import { useGetUserBookings } from "../hooks/useGetUserBookings";
 import { useCancelBooking } from "../hooks/useCancelBooking";
 import ConfirmModal from "../../../components/ConfirmModal";
@@ -8,21 +8,28 @@ import { useNavigate } from "react-router-dom";
 const UserBookingsPage = () => {
   const { bookings, loading, error, pagination, setParams, refetch } = useGetUserBookings();
   const { handleCancel, loading: cancelLoading } = useCancelBooking();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const [showModal, setShowModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
 
   const openCancelModal = (bookingId) => {
-    setSelectedBooking(bookingId)
+    setSelectedBooking(bookingId);
     setShowModal(true);
   };
 
   const confirmCancel = async () => {
-    if(selectedBooking){
-        await handleCancel(selectedBooking, refetch)
-        setShowModal(false)
-        setSelectedBooking(null)
+    if (selectedBooking) {
+      try{
+        await handleCancel(selectedBooking, refetch);
+      }
+      catch (err) {
+
+      }
+      finally {
+        setShowModal(false);
+        setSelectedBooking(null);
+      }  
     }
   };
 
@@ -42,7 +49,7 @@ const UserBookingsPage = () => {
   if (error) return <p className="p-6 text-red-600">{error}</p>;
 
   const getStatusLabel = (status) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case "active":
         return <span className="px-3 py-1 text-sm font-medium bg-blue-100 text-blue-600 rounded-full">Upcoming</span>;
       case "completed":
@@ -50,8 +57,17 @@ const UserBookingsPage = () => {
       case "cancelled":
         return <span className="px-3 py-1 text-sm font-medium bg-red-100 text-red-600 rounded-full">Cancelled</span>;
       default:
-        return <span className="px-3 py-1 text-sm font-medium bg-gray-100 text-gray-600 rounded-full">{status}</span>;
+        return <span className="px-3 py-1 text-sm font-medium bg-gray-100 text-gray-600 rounded-full">{status || "Unknown"}</span>;
     }
+  };
+
+  // Optional: nicer display for payment method
+  const formatPaymentMethod = (method) => {
+    if (!method) return "—";
+    return method
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
   };
 
   return (
@@ -109,12 +125,21 @@ const UserBookingsPage = () => {
             key={b.id}
             className="flex items-center justify-between border border-gray-200 rounded-lg p-4 shadow-sm bg-white hover:shadow-md transition"
           >
-            <div>
-              <div className="mt-2">{getStatusLabel(b.booking_status)}</div>
+            <div className="flex-1">
+              <div className="flex items-center gap-4 mb-2">
+                {getStatusLabel(b.booking_status)}
+                {getStatusLabel(b.payment_status)}
+              </div>
+
               <h3 className="text-lg font-medium text-gray-800">{b.package_title}</h3>
-              <p className="text-sm text-gray-500">Date: {b.date}</p>
-              <p className="text-sm text-gray-500">Price: ₹{b.amount}</p>
-              <div className="mt-2">{getStatusLabel(b.payment_status)}</div>
+              <div className="text-sm text-gray-500 space-y-1 mt-1">
+                <p>Date: {b.date}</p>
+                <p>Price: ₹{b.amount}</p>
+                <p>
+                  <span className="font-medium">Payment Method:</span>{" "}
+                  {formatPaymentMethod(b.payment_method)}
+                </p>
+              </div>
             </div>
 
             <div className="flex space-x-2">
@@ -125,13 +150,15 @@ const UserBookingsPage = () => {
                 Details
               </button>
 
-              {b.booking_status === "ACTIVE" && (
+              {/* Only show Cancel button if ACTIVE and booking date is in the future */}
+              {b.booking_status === "ACTIVE" && 
+              new Date(b.date) > new Date().setHours(0, 0, 0, 0) && (
                 <button
                   disabled={cancelLoading}
                   onClick={() => openCancelModal(b.id)}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 disabled:opacity-50"
                 >
-                  Cancel
+                  {cancelLoading ? "Cancelling..." : "Cancel"}
                 </button>
               )}
             </div>
@@ -147,7 +174,7 @@ const UserBookingsPage = () => {
       <div className="flex justify-center items-center mt-6 space-x-4">
         <button
           disabled={!pagination.previous}
-          onClick={() => handlePageChange(pagination.previous ? pagination.previous.page : 1)}
+          onClick={() => handlePageChange(pagination.previous?.page || 1)}
           className={`px-4 py-2 rounded-lg text-sm ${
             pagination.previous
               ? "bg-gray-200 hover:bg-gray-300 text-gray-700"
@@ -159,7 +186,7 @@ const UserBookingsPage = () => {
         <p className="text-gray-600 text-sm">Total: {pagination.count}</p>
         <button
           disabled={!pagination.next}
-          onClick={() => handlePageChange(pagination.next ? pagination.next.page : 1)}
+          onClick={() => handlePageChange(pagination.next?.page || 1)}
           className={`px-4 py-2 rounded-lg text-sm ${
             pagination.next
               ? "bg-gray-200 hover:bg-gray-300 text-gray-700"

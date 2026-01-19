@@ -1,11 +1,38 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { Loader2, Star } from "lucide-react";
+import { useState } from "react";
 import { useGetBooking } from "../hooks/useGetBooking";
+import useAddReview from "../hooks/useAddReview";
 
 const UserBookingDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
   const { booking, loading, error } = useGetBooking(id);
+
+  // Review state
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+
+  const {
+    addReview: createReview,
+    loading: reviewLoading,
+    error: reviewError,
+  } = useAddReview();
+
+  const handleSubmitReview = async () => {
+    if (!rating) return;
+
+    await createReview({
+      booking: booking.id,
+      rating,
+      comment,
+    });
+
+    // reset after success
+    setRating(0);
+    setComment("");
+  };
 
   if (loading) {
     return (
@@ -35,8 +62,9 @@ const UserBookingDetailsPage = () => {
         Booking Details
       </h1>
 
+      {/* Booking Card */}
       <div className="bg-white shadow-lg rounded-xl p-6 grid md:grid-cols-2 gap-8 items-center">
-        {/* Left: Image */}
+        {/* Image */}
         <div>
           <img
             src={booking.package_image}
@@ -45,7 +73,7 @@ const UserBookingDetailsPage = () => {
           />
         </div>
 
-        {/* Right: Booking Info */}
+        {/* Details */}
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold text-gray-800">
             {booking.package_title}
@@ -63,7 +91,7 @@ const UserBookingDetailsPage = () => {
 
           <div className="grid grid-cols-2 gap-4 mt-4">
             <div>
-              <p className="text-gray-500 text-sm">No. of Members</p>
+              <p className="text-gray-500 text-sm">Members</p>
               <p className="text-gray-800 font-semibold">
                 {booking.no_of_members}
               </p>
@@ -84,7 +112,7 @@ const UserBookingDetailsPage = () => {
             </div>
 
             <div>
-              <p className="text-gray-500 text-sm">Payment Status</p>
+              <p className="text-gray-500 text-sm">Payment</p>
               <p
                 className={`font-semibold ${
                   booking.payment_status?.toLowerCase() === "paid"
@@ -106,7 +134,93 @@ const UserBookingDetailsPage = () => {
         </div>
       </div>
 
-      {/* Back Button */}
+      {/* Review Section (ONLY if completed) */}
+      {booking.booking_status === "COMPLETED" && (
+        <div className="mt-10 max-w-3xl mx-auto">
+          {booking.review ? (
+            /* Existing Review */
+            <div className="bg-white shadow-lg rounded-xl p-6">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                Your Review
+              </h3>
+
+              {/* Rating */}
+              <div className="flex items-center gap-1 mb-3">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className={`w-6 h-6 ${
+                      star <= booking.review.rating
+                        ? "text-yellow-400 fill-yellow-400"
+                        : "text-gray-300"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* Comment */}
+              <p className="text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-4">
+                {booking.review.comment}
+              </p>
+
+              <p className="text-sm text-gray-400 mt-3">
+                Reviewed on{" "}
+                {new Date(booking.review.created_at).toLocaleDateString()}
+              </p>
+            </div>
+          ) : (
+            /* Add Review */
+            <div className="bg-white shadow-lg rounded-xl p-6">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                Leave a Review
+              </h3>
+
+              {/* Rating */}
+              <div className="flex items-center gap-2 mb-4">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setRating(star)}
+                    className="focus:outline-none"
+                  >
+                    <Star
+                      className={`w-7 h-7 ${
+                        star <= rating
+                          ? "text-yellow-400 fill-yellow-400"
+                          : "text-gray-300"
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+
+              {/* Comment */}
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Share your experience..."
+                rows={4}
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-green-600"
+              />
+
+              {reviewError && (
+                <p className="text-red-500 text-sm mt-2">{reviewError}</p>
+              )}
+
+              <button
+                onClick={handleSubmitReview}
+                disabled={reviewLoading || !rating}
+                className="mt-4 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition font-medium"
+              >
+                {reviewLoading ? "Submitting..." : "Submit Review"}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+
+      {/* Back */}
       <div className="mt-8 text-center">
         <button
           onClick={() => navigate(-1)}

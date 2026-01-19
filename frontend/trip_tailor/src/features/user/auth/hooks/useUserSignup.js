@@ -13,8 +13,9 @@ export const useUserSignup = () => {
                 state: {
                     username: res.username,
                     email: res.email,
-                }
-            })
+                    flow: "signup",
+                },
+            });
         } catch (err) {
             console.error('Sign Up error:', err.response?.data || err.message)
             throw err

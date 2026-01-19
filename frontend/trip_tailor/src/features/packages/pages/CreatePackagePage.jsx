@@ -1,9 +1,10 @@
 // src/features/packages/pages/CreatePackagePage.jsx
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreatePackage } from "../hooks/useCreatePackage";
-import ReactCrop from "react-image-crop";
-import "react-image-crop/dist/ReactCrop.css";
+import { useGetInterests } from "../hooks/useGetInterests";
+import ImageCropModal from "../../../components/ImageCropModal";
+import { getCroppedImage } from "../../../utils/cropImage";
 import toast from "react-hot-toast";
 
 const CreatePackagePage = () => {
@@ -15,102 +16,112 @@ const CreatePackagePage = () => {
     main_image: null,
     images: [],
   });
+  const [selectedInterests, setSelectedInterests] = useState([]);
+  const { interests, loading: interestsLoading } = useGetInterests();
 
   const [errors, setErrors] = useState({});
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [crop, setCrop] = useState({ unit: "%", x: 0, y: 0, width: 80, aspect: 16 / 9 });
-  const [completedCrop, setCompletedCrop] = useState(null);
-  const imgRef = useRef(null);
 
-  const { handleCreate, loading } = useCreatePackage();
+  const toggleInterest = (interestId) => {
+    setSelectedInterests((prev) =>
+      prev.includes(interestId)
+        ? prev.filter((id) => id !== interestId)
+        : [...prev, interestId]
+    );
+  };
+
+  // 🔹 cropping state
+  const [cropImageSrc, setCropImageSrc] = useState(null);
+  const [cropTarget, setCropTarget] = useState(null); // "main" | "sub"
+  const [isCropping, setIsCropping] = useState(false);
+
+  const { handleCreate, loading, error } = useCreatePackage();
   const navigate = useNavigate();
 
-  // ✅ Form validation
+  /* ---------------- validation ---------------- */
   const validateForm = () => {
     const newErrors = {};
-    if (!form.title.trim()) {
-      newErrors.title = "Title is required.";
-    } else if (/^\d+$/.test(form.title)) {
+
+    if (!form.title.trim()) newErrors.title = "Title is required.";
+    else if (/^\d+$/.test(form.title))
       newErrors.title = "Title cannot be only numbers.";
-    }
 
-    if (!form.description.trim()) {
+    if (!form.description.trim())
       newErrors.description = "Description is required.";
-    } else if (/^\d+$/.test(form.description)) {
+    else if (/^\d+$/.test(form.description))
       newErrors.description = "Description cannot be only numbers.";
-    }
 
-    if (!form.price || form.price <= 0) {
+    if (!form.price || form.price <= 0)
       newErrors.price = "Price must be greater than 0.";
-    }
 
-    if (!form.duration || form.duration <= 0) {
+    if (!form.duration || form.duration <= 0)
       newErrors.duration = "Duration must be greater than 0.";
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // For preview before cropping
-  useEffect(() => {
-    if (!form.main_image) {
-      setPreviewUrl(null);
-      return;
-    }
-    const objectUrl = URL.createObjectURL(form.main_image);
-    setPreviewUrl(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [form.main_image]);
-
+  /* ---------------- handlers ---------------- */
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // 🟢 MAIN IMAGE
   const handleMainImageChange = (e) => {
-    if (e.target.files[0]) {
-      setForm({ ...form, main_image: e.target.files[0] });
-    }
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropImageSrc(reader.result);
+      setCropTarget("main");
+      setIsCropping(true);
+    };
+    reader.readAsDataURL(file);
   };
 
+  // 🟢 SUB IMAGES
   const handleImagesChange = (e) => {
-    const files = Array.from(e.target.files).slice(0, 4);
-    setForm({ ...form, images: files });
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropImageSrc(reader.result);
+      setCropTarget("sub");
+      setIsCropping(true);
+    };
+    reader.readAsDataURL(file);
   };
 
-  const getCroppedImage = () => {
-    if (!completedCrop?.width || !completedCrop?.height || !imgRef.current) return;
-
-    const canvas = document.createElement("canvas");
-    const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
-    const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
-
-    canvas.width = completedCrop.width;
-    canvas.height = completedCrop.height;
-
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(
-      imgRef.current,
-      completedCrop.x * scaleX,
-      completedCrop.y * scaleY,
-      completedCrop.width * scaleX,
-      completedCrop.height * scaleY,
-      0,
-      0,
-      completedCrop.width,
-      completedCrop.height
+  // 🟢 APPLY CROP
+  const handleCropConfirm = async (croppedAreaPixels) => {
+    const croppedFile = await getCroppedImage(
+      cropImageSrc,
+      croppedAreaPixels
     );
 
-    canvas.toBlob((blob) => {
-      if (blob) {
-        setForm((prev) => ({
-          ...prev,
-          main_image: new File([blob], "cropped.jpg", { type: "image/jpeg" }),
-        }));
-      }
-    }, "image/jpeg");
+    if (cropTarget === "main") {
+      setForm((prev) => ({ ...prev, main_image: croppedFile }));
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        images: [...prev.images, croppedFile].slice(0, 4),
+      }));
+    }
+
+    setIsCropping(false);
+    setCropImageSrc(null);
+    setCropTarget(null);
   };
 
+  const handleRemoveNewImage = (index) => {
+    setForm((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
+  };
+
+  /* ---------------- submit ---------------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -124,21 +135,30 @@ const CreatePackagePage = () => {
     formData.append("description", form.description);
     formData.append("price", form.price);
     formData.append("duration", form.duration);
+
+    selectedInterests.forEach((id) => {
+      formData.append("interest_ids", id);          
+    });
+
     if (form.main_image) formData.append("main_image", form.main_image);
     form.images.forEach((img) => formData.append("images", img));
 
     try {
       await handleCreate(formData);
       toast.success("Package created successfully! 🎉");
-      navigate("/agency/my-packages"); // ✅ fixed
+      navigate("/agency/my-packages");
     } catch (err) {
+      console.error(err.response?.data);
       toast.error(err.response?.data?.detail || "Failed to create package ❌");
     }
   };
 
+  /* ---------------- UI ---------------- */
   return (
     <div className="max-w-4xl mx-auto p-6 font-jakarta">
-      <h1 className="text-2xl font-bold text-green-700 mb-6">Create New Package</h1>
+      <h1 className="text-2xl font-bold text-green-700 mb-6">
+        Create New Package
+      </h1>
 
       <form
         onSubmit={handleSubmit}
@@ -155,7 +175,9 @@ const CreatePackagePage = () => {
             onChange={handleChange}
             className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-green-400"
           />
-          {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
+          {errors.title && (
+            <p className="text-red-500 text-sm mt-1">{errors.title}</p>
+          )}
         </div>
 
         {/* Description */}
@@ -172,6 +194,34 @@ const CreatePackagePage = () => {
             <p className="text-red-500 text-sm mt-1">{errors.description}</p>
           )}
         </div>
+        {/* Interests */}
+        <div>
+          <label className="block font-medium mb-2">
+            Package Interests
+          </label>
+
+          {interestsLoading ? (
+            <p className="text-sm text-gray-500">Loading interests...</p>
+          ) : (
+            <div className="flex flex-wrap gap-3">
+              {interests.map((interest) => (
+                <button
+                  key={interest.id}
+                  type="button"
+                  onClick={() => toggleInterest(interest.id)}
+                  className={`px-4 py-2 rounded-full text-sm border transition
+                    ${
+                      selectedInterests.includes(interest.id)
+                        ? "bg-green-600 text-white border-green-600"
+                        : "bg-white text-gray-700 border-gray-300 hover:bg-green-50"
+                    }`}
+                >
+                  {interest.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Price & Duration */}
         <div className="grid grid-cols-2 gap-4">
@@ -184,7 +234,9 @@ const CreatePackagePage = () => {
               onChange={handleChange}
               className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-green-400"
             />
-            {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
+            {errors.price && (
+              <p className="text-red-500 text-sm mt-1">{errors.price}</p>
+            )}
           </div>
           <div>
             <input
@@ -203,57 +255,59 @@ const CreatePackagePage = () => {
 
         {/* Main Image */}
         <div>
-          <label className="block font-medium mb-2">Main Image (with cropping)</label>
+          <label className="block font-medium mb-2">
+            Main Image (with cropping)
+          </label>
+
+          {form.main_image && (
+            <img
+              src={URL.createObjectURL(form.main_image)}
+              alt="main preview"
+              className="h-32 rounded mb-2 object-cover"
+            />
+          )}
+
           <input
             type="file"
-            name="main_image"
             accept="image/*"
             onChange={handleMainImageChange}
-            className="mb-4"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-green-100 file:text-green-700 hover:file:bg-green-200"
           />
-
-          {previewUrl && (
-            <div>
-              <ReactCrop
-                crop={crop}
-                onChange={(c) => setCrop(c)}
-                onComplete={(c) => setCompletedCrop(c)}
-                aspect={16 / 9}
-              >
-                <img ref={imgRef} src={previewUrl} alt="Preview" className="max-h-96" />
-              </ReactCrop>
-              <button
-                type="button"
-                onClick={getCroppedImage}
-                className="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-              >
-                Apply Crop
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Sub Images */}
         <div>
-          <label className="block font-medium mb-2">Sub Images (up to 4)</label>
+          <label className="block font-medium mb-2">
+            Sub Images (up to 4)
+          </label>
+
+          {form.images.length > 0 && (
+            <div className="flex flex-wrap gap-3 mt-3">
+              {form.images.map((img, idx) => (
+                <div key={idx} className="relative">
+                  <img
+                    src={URL.createObjectURL(img)}
+                    alt="preview"
+                    className="h-20 w-20 object-cover rounded"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveNewImage(idx)}
+                    className="absolute top-0 right-0 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-bl"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <input
             type="file"
-            name="images"
             accept="image/*"
-            multiple
             onChange={handleImagesChange}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-green-100 file:text-green-700 hover:file:bg-green-200"
           />
-
-          <div className="grid grid-cols-4 gap-2 mt-2">
-            {form.images.map((img, idx) => (
-              <img
-                key={idx}
-                src={URL.createObjectURL(img)}
-                alt={`sub-${idx}`}
-                className="h-24 w-full object-cover rounded-md border"
-              />
-            ))}
-          </div>
         </div>
 
         {/* Buttons */}
@@ -274,6 +328,15 @@ const CreatePackagePage = () => {
           </button>
         </div>
       </form>
+
+      {/* 🔥 Crop Modal */}
+      {isCropping && (
+        <ImageCropModal
+          imageSrc={cropImageSrc}
+          onCancel={() => setIsCropping(false)}
+          onConfirm={handleCropConfirm}
+        />
+      )}
     </div>
   );
 };

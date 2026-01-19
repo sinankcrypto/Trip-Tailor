@@ -1,13 +1,51 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { useGetOnePackage } from "../hooks/useGetOnePackage";
-import { Star } from "lucide-react"; // ⭐ For static star icons
+import { Star, X } from "lucide-react";
+import { useCreateChatSession } from "../../chat/hooks/useCreateChatSession";
+import { useGetPackageReviews } from "../../bookings/hooks/useGetPackageReviews";
 
 const PackageDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { pkg, loading, error } = useGetOnePackage(id);
 
-  const packagedata = pkg;
+  const { pkg, loading, error } = useGetOnePackage(id);
+  const { createSession } = useCreateChatSession();
+
+  const [zoomedImage, setZoomedImage] = useState(null);       // MAIN IMAGE
+  const [zoomedSubIndex, setZoomedSubIndex] = useState(null); // SUB IMAGES
+
+  const {
+    reviews,
+    loading: reviewsLoading,
+    error: reviewsError,
+    loadMore,
+    hasMore,
+  } = useGetPackageReviews(id);
+
+  /* ================= HOTKEYS (SUB IMAGES ONLY) ================= */
+  useEffect(() => {
+    if (zoomedSubIndex === null || !pkg?.images?.length) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setZoomedSubIndex(null);
+      }
+
+      if (e.key === "ArrowRight") {
+        setZoomedSubIndex((prev) =>
+          prev < pkg.images.length - 1 ? prev + 1 : prev
+        );
+      }
+
+      if (e.key === "ArrowLeft") {
+        setZoomedSubIndex((prev) => (prev > 0 ? prev - 1 : prev));
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [zoomedSubIndex, pkg?.images]);
 
   if (loading) {
     return (
@@ -26,109 +64,237 @@ const PackageDetailPage = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10">
+    <div className="max-w-6xl mx-auto px-6 py-10 font-[Plus Jakarta Sans]">
       <div className="bg-white shadow-lg rounded-2xl overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-2">
-          {/* Left Section - Images */}
+          {/* ================= LEFT: IMAGES ================= */}
           <div className="p-6 flex flex-col items-center">
-            {packagedata.main_image && (
-              <img
-                src={packagedata.main_image}
-                alt={packagedata.title}
-                className="w-full h-80 object-cover rounded-xl shadow-md mb-6"
-              />
+            {/* Main Image */}
+            {pkg.main_image && (
+              <div
+                className="cursor-zoom-in"
+                onClick={() => setZoomedImage(pkg.main_image)}
+              >
+                <img
+                  src={pkg.main_image}
+                  alt={pkg.title}
+                  className="w-full h-80 object-cover rounded-xl shadow-md"
+                />
+              </div>
             )}
 
-            {packagedata.images && packagedata.images.length > 0 && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full">
-                {packagedata.images.map((img, idx) => (
-                  <img
+            {/* Sub Images */}
+            {pkg.images?.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full mt-4">
+                {pkg.images.map((img, idx) => (
+                  <div
                     key={idx}
-                    src={img.image_url}
-                    alt={`Sub image ${idx + 1}`}
-                    className="w-full h-32 object-cover rounded-lg shadow"
-                  />
+                    className="cursor-zoom-in"
+                    onClick={() => setZoomedSubIndex(idx)}
+                  >
+                    <img
+                      src={img.image_url}
+                      alt={`Sub image ${idx + 1}`}
+                      className="w-full h-32 object-cover rounded-lg shadow"
+                    />
+                  </div>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Right Section - Package Details */}
+          {/* ================= RIGHT: DETAILS ================= */}
           <div className="p-8 flex flex-col justify-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-3">
-              {packagedata.title}
+              {pkg.title}
             </h1>
 
-            {/* ⭐ Package Rating */}
+            {/* Rating */}
             <div className="flex items-center gap-2 mb-4">
-              <p className="text-lg font-semibold text-yellow-500">4.6</p>
+              <p className="text-lg font-semibold text-yellow-500">
+                {pkg.average_rating.toFixed(1)}
+              </p>
               <div className="flex">
-                {[...Array(5)].map((_, i) => (
+                {[1, 2, 3, 4, 5].map((star) => (
                   <Star
-                    key={i}
+                    key={star}
                     size={18}
-                    className={`${
-                      i < 4 ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
-                    }`}
+                    className={
+                      star <= Math.round(pkg.average_rating)
+                        ? "text-yellow-400 fill-yellow-400"
+                        : "text-gray-300"
+                    }
                   />
                 ))}
               </div>
-              <p className="text-gray-500 text-sm ml-1">(120 reviews)</p>
+              <p className="text-gray-500 text-sm">
+                ({pkg.total_reviews} reviews)
+              </p>
             </div>
 
-            <p className="text-gray-700 leading-relaxed mb-6">
-              {packagedata.description}
-            </p>
+            <p className="text-gray-700 mb-6">{pkg.description}</p>
 
-            <div className="space-y-4 mb-6">
-              <div>
-                <p className="text-gray-500 text-sm">Price</p>
-                <p className="text-lg font-semibold text-gray-800">
-                  ₹{packagedata.price}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-500 text-sm">Duration</p>
-                <p className="text-lg font-semibold text-gray-800">
-                  {packagedata.duration} days
-                </p>
-              </div>
+            <div className="mb-6 space-y-2">
+              <p>
+                <span className="text-gray-500">Price:</span>{" "}
+                <span className="font-semibold">₹{pkg.price}</span>
+              </p>
+              <p>
+                <span className="text-gray-500">Duration:</span>{" "}
+                <span className="font-semibold">{pkg.duration} days</span>
+              </p>
             </div>
 
-            {/* Book Now Button */}
             <button
               onClick={() => navigate(`/book/${id}`)}
-              className="px-5 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition self-start"
+              className="px-5 py-2 bg-green-600 text-white rounded-lg"
             >
               Book Now
             </button>
           </div>
         </div>
+      </div>
 
-        {/* 📦 Agency Info Section */}
-        {packagedata.agency && (
-          <div className="border-t px-8 py-6 flex flex-col md:flex-row items-start md:items-center gap-6">
-            <img
-              src={packagedata.agency.profile_pic}
-              alt={packagedata.agency.agency_name}
-              className="w-24 h-24 rounded-full object-cover shadow-md"
-            />
+      {pkg.agency && (
+          <div className="border-t px-8 py-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            {/* Agency Info */}
+            <div className="flex items-center gap-6">
+              <img
+                src={pkg.agency.profile_pic}
+                alt={pkg.agency.agency_name}
+                className="w-24 h-24 rounded-full object-cover shadow-md"
+              />
 
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-1">
-                {packagedata.agency.agency_name}
-              </h2>
-              <p className="text-gray-700 mb-2">{packagedata.agency.description}</p>
-              <p className="text-gray-600 text-sm">
-                📍 {packagedata.agency.address}
-              </p>
-              <p className="text-gray-600 text-sm">
-                ☎️ {packagedata.agency.phone_number}
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 mb-1">
+                  {pkg.agency.agency_name}
+                </h2>
+                <p className="text-gray-700 mb-2">
+                  {pkg.agency.description}
+                </p>
+                <p className="text-gray-600 text-sm">
+                  📍 {pkg.agency.address}
+                </p>
+                <p className="text-gray-600 text-sm">
+                  ☎️ {pkg.agency.phone_number}
+                </p>
+              </div>
+            </div>
+
+            {/* CHAT WITH US BUTTON */}
+            <button
+              onClick={async () =>{
+                const res = await createSession(id)
+                const sessionId = res.session_id
+                navigate(`/user/chat/${sessionId}`)
+              }}
+              className="flex items-center gap-3 px-6 py-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl shadow-lg transition-all transform hover:scale-105 active:scale-100"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-6 h-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+              <span>Chat with Us</span>
+            </button>
+          </div>
+        )}
+
+      {/* ================= REVIEWS ================= */}
+      <div className="mt-10 bg-white shadow-lg rounded-2xl px-8 py-6">
+        <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
+
+        {reviewsLoading && <p>Loading reviews...</p>}
+        {reviewsError && <p className="text-red-500">{reviewsError}</p>}
+        {!reviewsLoading && reviews.length === 0 && (
+          <p>No reviews yet.</p>
+        )}
+
+        <div className="space-y-6">
+          {reviews.map((review) => (
+            <div key={review.id} className="border-b pb-4">
+              <div className="flex justify-between">
+                <p className="font-semibold">{review.username || "User"}</p>
+                <div className="flex">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star
+                      key={s}
+                      size={14}
+                      className={
+                        s <= review.rating
+                          ? "text-yellow-400 fill-yellow-400"
+                          : "text-gray-300"
+                      }
+                    />
+                  ))}
+                </div>
+              </div>
+              <p className="text-gray-700">{review.comment}</p>
+              <p className="text-sm text-gray-400">
+                {new Date(review.created_at).toLocaleDateString()}
               </p>
             </div>
+          ))}
+        </div>
+
+        {hasMore && (
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={loadMore}
+              className="px-6 py-2 bg-gray-100 rounded-lg"
+            >
+              Show More Reviews
+            </button>
           </div>
         )}
       </div>
+
+      {/* ================= MAIN IMAGE MODAL ================= */}
+      {zoomedImage && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center z-50"
+          onClick={() => setZoomedImage(null)}
+        >
+          <X
+            className="absolute top-6 right-6 text-white"
+            size={28}
+            onClick={() => setZoomedImage(null)}
+          />
+          <img
+            src={zoomedImage}
+            alt="Zoomed"
+            className="max-w-[90%] max-h-[85%] object-contain"
+          />
+        </div>
+      )}
+
+      {/* ================= SUB IMAGE MODAL (HOTKEYS) ================= */}
+      {zoomedSubIndex !== null && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center z-50"
+          onClick={() => setZoomedSubIndex(null)}
+        >
+          <X
+            className="absolute top-6 right-6 text-white"
+            size={28}
+            onClick={() => setZoomedSubIndex(null)}
+          />
+          <img
+            src={pkg.images[zoomedSubIndex].image_url}
+            alt="Zoomed sub"
+            className="max-w-[90%] max-h-[85%] object-contain"
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -2,27 +2,29 @@
 import { useState, useEffect } from "react";
 import { getPackages } from "../services/packageService";
 
-export const useGetPackages = () => {
+export const useGetPackages = (filters = {}) => {
   const [packages, setPackages] = useState([]);
+  const [pagination, setPagination] = useState({ next: null, previous: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    const fetchPackages = async () => {
-      try {
-        setLoading(true);
-        const data = await getPackages();
-        if (!cancelled) setPackages(data);
-      } catch (err) {
-        if (!cancelled) setError(err.response?.data || err.message);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    fetchPackages();
-    return () => (cancelled = true);
-  }, []);
+  const fetchPackages = async () => {
+    try {
+      setLoading(true);
+      const data = await getPackages(filters);
+      console.log(filters)
+      setPackages(data.results || data);
+      setPagination({ next: data.next, previous: data.previous });
+    } catch (err) {
+      setError(err.response?.data || err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  return { packages, loading, error };
+  useEffect(() => {
+    fetchPackages();
+  }, [JSON.stringify(filters)]); // re-run when filters change
+
+  return { packages, pagination, loading, error };
 };

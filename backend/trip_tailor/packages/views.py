@@ -1,4 +1,4 @@
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 
@@ -12,7 +12,11 @@ from .serializers import PackageSerializer
 from .repositories.package_repository import PackageRepository
 from .filters import PackageFilter
 from agency_app.permissions import IsVerifiedAgency, IsAdminOrVerifiedAgency
-
+from core.exceptions import ImageUploadError
+from recommendations.repository.interaction_repository import InteractionRepository
+from core.pagination import StandardResultsSetPagination
+from core.constants import ActionChoices
+from recommendations.repository.package_interest_repository import PackageInterestRepository
 
 # Create your views here.
 
@@ -24,12 +28,24 @@ class PackageCreateView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         try:
-            package = package_repo.create_package(
-                agency = self.request.user.agency_profile,  
-                data = serializer.validated_data,
-                images = self.request.FILES.getlist("images")
-            )
-            serializer.instance = package
+            interest_ids = serializer.validated_data.pop("interest_ids", [])
+            with transaction.atomic():
+                package = package_repo.create_package(
+                    agency = self.request.user.agency_profile,  
+                    data = serializer.validated_data,
+                    images = self.request.FILES.getlist("images")
+                )
+                serializer.instance = package
+
+                if interest_ids:
+                    PackageInterestRepository.set_package_interests(
+                        package=package,
+                        interest_ids=interest_ids
+                    )
+        except ImageUploadError:
+            raise ValidationError({
+                "image": "Image upload failed. Please try again."
+            })
         except ValueError as e:
             raise ValidationError({"error": str(e)})
     
@@ -42,13 +58,31 @@ class PackageUpdateView(generics.UpdateAPIView):
     
     def perform_update(self, serializer):
         package = self.get_object()
-        package_repo.update_package(
-            package,
-            serializer.validated_data,
-            images = self.request.FILES.getlist("images")
-        )
+        
+        try:
+            interest_ids = serializer.validated_data.pop("interest_ids",None)
 
-        serializer.instance = package
+            images = self.request.FILES.getlist("images")
+            existing_image_ids = self.request.data.getlist("existing_image_ids")
+            with transaction.atomic():
+                package_repo.update_package(
+                    package,
+                    serializer.validated_data,
+                    images=images,
+                    existing_image_ids=existing_image_ids, 
+                )
+                if interest_ids is not None:
+                    PackageInterestRepository.set_package_interests(
+                        package=package,
+                        interest_ids=interest_ids
+                    )
+
+            serializer.instance = package
+        except ImageUploadError:
+            raise ValidationError({"image":"Image upload failed. Please try again."})
+        
+        except ValueError as e:
+            raise ValidationError({"error":str(e)})
 
 class AgencyPackageListView(APIView):
     permission_classes = [IsAuthenticated, IsVerifiedAgency]
@@ -95,15 +129,35 @@ class PackageDetailView(generics.RetrieveAPIView):
     def get_queryset(self):
         return package_repo.get_all_listed()
     
+    def retrieve(self, request, *args, **kwargs):   
+        respone = super().retrieve(request, *args, **kwargs)
+
+        if request.user.is_authenticated:
+            InteractionRepository.create(
+                user=request.user,
+                action=ActionChoices.VIEW,
+                package=self.get_object(),
+            )
+        
+        return respone
+    
 # User Side
 
-class PackageListView(APIView):
-    def get(self, request):
-        packages = package_repo.get_all_listed()
-        serializer = PackageSerializer(packages, many=True)
+class PackageListView(generics.ListAPIView):
+    queryset = package_repo.get_all_listed()
+    serializer_class = PackageSerializer
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
 
-        return Response(serializer.data, status= status.HTTP_200_OK)
+    filterset_fields = {
+        "agency": ["exact"],
+        "price": ["gte", "lte"],
+    }
     
+    ordering_fields = ["price", "created_at"]
+    ordering = ["-created_at"]
+    search_fields = ["title", "description"]
+
 class LatestPackagesView(generics.ListAPIView):
     serializer_class = PackageSerializer
 

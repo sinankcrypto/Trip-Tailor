@@ -9,6 +9,14 @@ class UserRepository:
         return User.objects.filter(username=username).first()
     
     @staticmethod
+    def get_user_by_id(id):
+        return User.objects.filter(id=id).first()
+    
+    @staticmethod
+    def get_user_by_email(email):
+        return User.objects.filter(email__iexact=email.strip()).first()
+    
+    @staticmethod
     def authenticate_user(username,password):
         return authenticate(username=username, password=password)
     
@@ -33,6 +41,11 @@ class UserRepository:
 
         return user, created
     
+    @staticmethod
+    def count_of_all_users():
+        return UserRepository.get_all_users().count()
     
-    
+    @staticmethod
+    def check_user_exists(email):
+        return User.objects.filter(email=email, is_deleted=False).exists()
     

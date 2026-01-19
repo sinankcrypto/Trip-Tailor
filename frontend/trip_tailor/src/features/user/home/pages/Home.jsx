@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserStore } from "../../store/useUserStore";
 import heroImage from "../../../../assets/Home/hero_image.png";
@@ -7,6 +7,9 @@ import aboutImg2 from "../../../../assets/Home/aboutImg2.png";
 import { FiUser } from "react-icons/fi";
 import { useGetLatestPackages } from "../../../packages/hooks/useGetLatestPackages";
 import { useUserLogout } from "../../auth/hooks/useUserLogout";
+import { useGetRecommendedPackages } from "../../../packages/hooks/useGetRecommendedPackages";
+import { useGetUserInterests } from "../../profile/hooks/useGetUserInterests";
+import UserInterestsModal from "../components/UserInterestModal";
 
 
 const Home = () => {
@@ -14,7 +17,33 @@ const Home = () => {
   const { user, clearUser } = useUserStore();
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const { packages, loading, error } = useGetLatestPackages();
+  const [recommendationKey, setRecommendationKey] = useState(0);
+  const [interestKey, setInterestKey] = useState(0);
+
+  const {
+    packages: recommendedPackages,
+    loading: recommendedLoading,
+    error: recommendedError,
+  } = useGetRecommendedPackages(recommendationKey);  
+
+  const {
+    packages: latestPackages,
+    loading: latestLoading,
+    error: latestError,
+  } = useGetLatestPackages();
+
+  // Decide source
+  const packages = user ? recommendedPackages : latestPackages;
+  const loading = user ? recommendedLoading : latestLoading;
+  const error = user ? recommendedError : latestError;
+
+  const {
+    hasInterests,
+    loading: interestsLoading,
+  } = useGetUserInterests(!!user, interestKey);
+
+  const [showInterestsModal, setShowInterestsModal] = useState(false);
+  
   const { logout } = useUserLogout()
 
   const handleLogout = () => {
@@ -88,6 +117,23 @@ const Home = () => {
           </ul>
         </nav>
 
+        {/* Interest Reminder Bar */}
+        {user && !interestsLoading && !hasInterests && (
+          <div className="backdrop-blur-md bg-white/10 border-b border-white/20">
+            <div className="max-w-6xl mx-auto px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <p className="text-white font-medium text-sm drop-shadow">
+                🎯 Tell us your interests to get a personalized feed
+              </p>
+
+              <button
+                onClick={() => setShowInterestsModal(true)}
+                className="bg-white/90 text-green-700 px-4 py-1.5 rounded-md text-sm font-medium hover:bg-white transition"
+              >
+                Choose Interests
+              </button>
+            </div>
+          </div>
+        )}
         {/* Hero Text */}
         <div className="flex flex-col items-center justify-center text-center text-white h-[80vh] px-6">
           <h1 className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-lg">
@@ -130,7 +176,9 @@ const Home = () => {
 
       {/* Latest Packages */}
       <section className="max-w-6xl mx-auto px-6 py-16">
-        <h2 className="text-3xl font-bold text-center mb-10">Latest Packages</h2>
+        <h2 className="text-3xl font-bold text-center mb-10">
+          {user ? "Recommended For You" : "Latest Packages"}
+        </h2>
 
         {loading && <p className="text-center text-gray-500">Loading packages...</p>}
         {error && <p className="text-center text-red-500">{error}</p>}
@@ -163,6 +211,16 @@ const Home = () => {
           ))}
         </div>
       </section>
+
+      <UserInterestsModal
+        isOpen={showInterestsModal}
+        onClose={() => setShowInterestsModal(false)}
+        onSuccess={() => {
+          setShowInterestsModal(false);
+          setInterestKey((prev) => prev + 1);
+          setRecommendationKey((prev) => prev + 1);
+        }}
+      />
     </div>
   );
 };

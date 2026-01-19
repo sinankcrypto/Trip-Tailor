@@ -6,8 +6,11 @@ from rest_framework.response import Response
 
 from agency_app.models import AgencyProfile
 from .repository.agency_repository import AgencyRepository
-from .serializer import AgencyProfileSerializer
+from .serializer import AgencyProfileSerializer, AgencyDashboardMetricsSerializer
 from rest_framework import status
+from .permissions import IsVerifiedAgency
+from bookings.repositories.booking_repository import BookingRepository
+from payments.repository.payment_repository import PaymentRepository
 
 # Create your views here.
 
@@ -76,3 +79,18 @@ class LogoutView(APIView):
         response.delete_cookie('access_token', path='/')
         response.delete_cookie('refresh_token', path='/')
         return response
+    
+class AgencyDashboardMetricsView(APIView):
+    permission_classes = [IsVerifiedAgency]
+
+    def get(self, request):
+        agency = request.user.agency_profile
+        qs = {
+            "total_bookings":BookingRepository.count_of_bookings_for_agency(agency),
+            "total_earnings":PaymentRepository.total_earning_for_agency(agency)["total_earning"],
+            "today_bookings":BookingRepository.count_of_booking_of_the_day_for_agency(agency),
+            "weekly_data":BookingRepository.weekly_bookings_current_week(agency)
+        }
+        response = AgencyDashboardMetricsSerializer(qs)
+
+        return Response(response.data)

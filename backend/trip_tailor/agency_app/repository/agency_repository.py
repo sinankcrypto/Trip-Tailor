@@ -10,7 +10,7 @@ class AgencyRepository:
     
     @staticmethod
     def get_profile(user):
-        return AgencyProfile.objects.get(user=user.id)
+        return AgencyProfile.objects.get(user=user)
     
     @staticmethod
     def update_profile(user, data):
@@ -25,4 +25,8 @@ class AgencyRepository:
     @staticmethod
     def get_agency_by_id(pk):
         return User.objects.get(pk = pk, is_agency = True)
+    
+    @staticmethod
+    def count_of_all_agencies():
+        return AgencyRepository.get_all_agencies_with_profiles().count()
     

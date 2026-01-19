@@ -8,6 +8,7 @@ import Agencies from '../pages/Agencies';
 import AgencyDetials from '../pages/AgencyDetials';
 import AdminBookingsPage from '../../bookings/pages/AdminBookingsPage';
 import AdminPackagesPage from '../../packages/pages/AdminPackages';
+import AdminTransactionsPage from '../../payments/pages/AdminTransactionsPage';
 
 const AdminRoutes = () => {
   return (
@@ -29,6 +30,7 @@ const AdminRoutes = () => {
         <Route path="agencies/:id" element={<AgencyDetials/>} />
         <Route path="bookings" element= {<AdminBookingsPage/>} />
         <Route path="packages" element= {<AdminPackagesPage/>} />
+        <Route path="transactions" element= {<AdminTransactionsPage/>}/>
       </Route>
     </Routes>
     
