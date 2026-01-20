@@ -102,7 +102,7 @@ class PaymentRepository:
 
     @staticmethod
     def list_transactions_for_admin(filters=None, ordering="-created_at"):
-        queryset = Transaction.objects.all()
+        queryset = Transaction.objects.all().select_related('user', 'agency')
 
         if filters:
             if 'status' in filters:

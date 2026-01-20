@@ -2,12 +2,35 @@ import { useState } from "react";
 import { useFetchAdminTransaction } from "../hooks/useFetchAdminTransactions";
 
 const AdminTransactionsPage = () => {
-  const [filters, setFilters] = useState({ search: "", ordering: "-created_at" });
+  const [searchInput, setSearchInput] = useState("");
+  const [dateInput, setDateInput] = useState({
+    start_date: "",
+    end_date: "",
+  });
+  const [filters, setFilters] = useState({ ordering: "-created_at" });
   const { transactions, summary, pagination, loading, error, loadTransactions } =
     useFetchAdminTransaction(filters);
 
-  const handleSearch = (e) => {
-    setFilters({ ...filters, search: e.target.value });
+  const handleApplyDateFilter = () => {
+    if (!dateInput.start_date || !dateInput.end_date) {
+      toast.error("Please select both start and end date");
+      return;
+    }
+
+    setFilters((prev) => ({
+      ...prev,
+      start_date: dateInput.start_date,
+      end_date: dateInput.end_date,
+      page: 1,
+    }));
+  };
+
+  const handleSearch = () => {
+    setFilters((prev) => ({
+      ...prev,
+      search: searchInput || undefined,
+      page: 1,
+    }));
   };
 
   const handleSortChange = (e) => {
@@ -65,24 +88,69 @@ const AdminTransactionsPage = () => {
       )}
 
       {/* ===== Filters ===== */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <input
-          type="text"
-          placeholder="Search by user or agency..."
-          value={filters.search}
-          onChange={handleSearch}
-          className="border px-4 py-2 rounded-md w-full md:w-1/3"
-        />
-        <select
-          value={filters.ordering}
-          onChange={handleSortChange}
-          className="border px-4 py-2 rounded-md w-full md:w-1/4"
-        >
-          <option value="-created_at">Newest First</option>
-          <option value="created_at">Oldest First</option>
-          <option value="-amount">Highest Amount</option>
-          <option value="amount">Lowest Amount</option>
-        </select>
+      <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-end gap-4">
+
+          {/* 🔍 Search */}
+          <div className="flex gap-2 w-full lg:w-auto">
+            <input
+              type="text"
+              placeholder="Search user or agency"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="border px-3 py-2 rounded-md text-sm w-full lg:w-56 focus:ring-2 focus:ring-green-500"
+            />
+            <button
+              onClick={handleSearch}
+              className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition"
+            >
+              Search
+            </button>
+          </div>
+
+          {/* 📅 Date Filter */}
+          <div className="flex gap-2 w-full lg:w-auto">
+            <input
+              type="date"
+              value={dateInput.start_date}
+              onChange={(e) =>
+                setDateInput({ ...dateInput, start_date: e.target.value })
+              }
+              className="border px-3 py-2 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+            />
+
+            <input
+              type="date"
+              value={dateInput.end_date}
+              onChange={(e) =>
+                setDateInput({ ...dateInput, end_date: e.target.value })
+              }
+              className="border px-3 py-2 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+            />
+
+            <button
+              onClick={handleApplyDateFilter}
+              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition"
+            >
+              Apply
+            </button>
+          </div>
+
+          {/* ↕ Sorting */}
+          <div className="w-full lg:w-48">
+            <select
+              value={filters.ordering}
+              onChange={handleSortChange}
+              className="border px-3 py-2 rounded-md text-sm w-full focus:ring-2 focus:ring-gray-400"
+            >
+              <option value="-created_at">Newest First</option>
+              <option value="created_at">Oldest First</option>
+              <option value="-amount">Highest Amount</option>
+              <option value="amount">Lowest Amount</option>
+            </select>
+          </div>
+
+        </div>
       </div>
 
       {/* ===== Transactions Table ===== */}

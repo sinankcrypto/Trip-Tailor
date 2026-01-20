@@ -4,7 +4,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from django.contrib.auth import get_user_model
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Q
 from django.db import transaction
 from django.utils.timezone import make_aware
 
@@ -221,27 +221,27 @@ class AdminTransactionListView(generics.ListAPIView):
         params = self.request.query_params
 
         filters_data = {
-            "status": self.request.query_params.get("status"),
-            "agency": self.request.query_params.get("agency"),
-            "user": self.request.query_params.get("user"),
+            "status": params.get("status"),
+            "agency": params.get("agency"),
+            "user": params.get("user"),
         }
         filters_data = {k: v for k, v in filters_data.items() if v}
         ordering = self.request.query_params.get("ordering", "-created_at")
 
         qs = PaymentRepository.list_transactions_for_admin(filters=filters_data, ordering=ordering)
 
-        month = params.get("month")
+        search = params.get("search")
+        if search:
+            qs = qs.filter(
+                Q(user__username__icontains=search)
+                | Q(agency__agency_name__icontains=search)
+                | Q(booking__id__icontains=search)
+            )
+
         start_date = params.get("start_date")
         end_date = params.get("end_date")
 
-        if month:
-            year, month = map(int, month.split("-"))
-            qs = qs.filter(
-                created_at__year=year,
-                created_at__month=month
-            )
-
-        elif start_date and end_date:
+        if start_date and end_date:
             start = make_aware(datetime.fromisoformat(start_date))
             end = make_aware(datetime.fromisoformat(end_date))
             qs = qs.filter(created_at__range=(start,end))
