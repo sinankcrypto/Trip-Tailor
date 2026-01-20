@@ -3,7 +3,7 @@ import { useFetchAdminTransaction } from "../hooks/useFetchAdminTransactions";
 
 const AdminTransactionsPage = () => {
   const [filters, setFilters] = useState({ search: "", ordering: "-created_at" });
-  const { transactions, pagination, summary, loading, error, loadTransactions } =
+  const { transactions, summary, pagination, loading, error, loadTransactions } =
     useFetchAdminTransaction(filters);
 
   const handleSearch = (e) => {
@@ -13,6 +13,21 @@ const AdminTransactionsPage = () => {
   const handleSortChange = (e) => {
     setFilters({ ...filters, ordering: e.target.value });
   };
+
+  const PAGE_SIZE = 10;
+
+  const getCurrentPage = () => {
+    if (pagination.next) {
+      return Number(new URL(pagination.next).searchParams.get("page")) - 1;
+    }
+    if (pagination.previous) {
+      return Number(new URL(pagination.previous).searchParams.get("page")) + 1;
+    }
+    return 1; // first page
+  };
+
+  const currentPage = getCurrentPage();
+  const totalPages = Math.ceil(pagination.count / PAGE_SIZE);
 
   if (loading) return <p className="text-gray-600 p-4">Loading transactions...</p>;
   if (error) return <p className="text-red-500 p-4">{error}</p>;
@@ -115,21 +130,28 @@ const AdminTransactionsPage = () => {
       </div>
 
       {/* ===== Pagination ===== */}
-      <div className="flex justify-between items-center mt-6">
+      <div className="flex justify-center items-center gap-6 mt-6">
         <button
           disabled={!pagination.previous}
-          onClick={() =>
-            loadTransactions({ page: pagination.previous?.split("page=")[1] })
-          }
+          onClick={() => {
+            const page = new URL(pagination.previous).searchParams.get("page");
+            loadTransactions({ page });
+          }}
           className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
         >
           Prev
         </button>
+
+        <span className="text-sm text-gray-600">
+          Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>
+        </span>
+
         <button
           disabled={!pagination.next}
-          onClick={() =>
-            loadTransactions({ page: pagination.next?.split("page=")[1] })
-          }
+          onClick={() => {
+            const page = new URL(pagination.next).searchParams.get("page");
+            loadTransactions({ page });
+          }}
           className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
         >
           Next

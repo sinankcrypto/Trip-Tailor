@@ -25,8 +25,8 @@ const AdminBookingsPage = () => {
               <th className="border px-4 py-2">Members</th>
               <th className="border px-4 py-2">Amount</th>
               <th className="border px-4 py-2">Date</th>
-              <th className="border px-4 py-2">Payment</th>
-              <th className="border px-4 py-2">Booking</th>
+              <th className="border px-4 py-2">Payment status</th>
+              <th className="border px-4 py-2">Booking status</th>
               <th className="border px-4 py-2">Cancelled At</th>
             </tr>
           </thead>
@@ -82,7 +82,14 @@ const AdminBookingsPage = () => {
                       {booking.booking_status}
                     </span>
                   </td>
-                  <td className="border px-4 py-2">{booking.cancelled_at || "-"}</td>
+                  <td className="border px-4 py-2">
+                    {booking.cancelled_at
+                      ? new Date(booking.cancelled_at).toLocaleString("en-IN", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })
+                      : "-"}
+                  </td>
                 </tr>
               ))
             )}
