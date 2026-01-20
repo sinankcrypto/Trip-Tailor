@@ -16,7 +16,7 @@ const Layout = () => {
 
   const { logout } = useAdminLogout();
   return (
-      <div className="flex min-h-screen">
+      <div className="flex h-screen overflow-hidden">
           {/*Sidebar */}
           <aside className="w-64 bg-white border-r shadow-sm p-5">
               <div>
@@ -47,7 +47,7 @@ const Layout = () => {
           </aside>
 
           {/* Main Content */}  
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col h-full">
               {/*navbar*/}
               <header className="bg-white shadow-md p-4 flex items-center justify-between">
                   <div className="flex items-center gap-2 text-xl font-semibold">

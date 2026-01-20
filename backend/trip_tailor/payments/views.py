@@ -6,6 +6,9 @@ from django.views import View
 from django.contrib.auth import get_user_model
 from django.db.models import Sum, Count
 from django.db import transaction
+from django.utils.timezone import make_aware
+
+from datetime import datetime
 
 from rest_framework import status, generics, permissions, filters
 from rest_framework.views import APIView
@@ -215,6 +218,8 @@ class AdminTransactionListView(generics.ListAPIView):
     ordering_fields = ["amount", "created_at", "status"]
 
     def get_queryset(self):
+        params = self.request.query_params
+
         filters_data = {
             "status": self.request.query_params.get("status"),
             "agency": self.request.query_params.get("agency"),
@@ -223,7 +228,25 @@ class AdminTransactionListView(generics.ListAPIView):
         filters_data = {k: v for k, v in filters_data.items() if v}
         ordering = self.request.query_params.get("ordering", "-created_at")
 
-        return PaymentRepository.list_transactions_for_admin(filters=filters_data, ordering=ordering)
+        qs = PaymentRepository.list_transactions_for_admin(filters=filters_data, ordering=ordering)
+
+        month = params.get("month")
+        start_date = params.get("start_date")
+        end_date = params.get("end_date")
+
+        if month:
+            year, month = map(int, month.split("-"))
+            qs = qs.filter(
+                created_at__year=year,
+                created_at__month=month
+            )
+
+        elif start_date and end_date:
+            start = make_aware(datetime.fromisoformat(start_date))
+            end = make_aware(datetime.fromisoformat(end_date))
+            qs = qs.filter(created_at__range=(start,end))
+
+        return qs
     
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
