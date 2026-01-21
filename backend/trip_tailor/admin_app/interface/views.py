@@ -2,8 +2,11 @@ import calendar
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics
-from admin_app.interface.serializers import AdminLoginSerializer, PlatformFeeSerializer, AdminDashboardMetricsSerializer
+from admin_app.interface.serializers import ( 
+    AdminLoginSerializer, PlatformFeeSerializer, AdminDashboardMetricsSerializer, SalesReportSerializer
+)
 from admin_app.repository.sales_report_repository import SalesReportRepository
+from admin_app.utils.sales_report_pdf import generate_sales_report_pdf
 
 from user_auth.repository.user_repository import UserRepository
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -20,6 +23,9 @@ from payments.repository.payment_repository import PaymentRepository
 
 from django.utils.dateparse import parse_date
 from django.contrib.auth import get_user_model
+from django.http import HttpResponse
+
+from openpyxl import Workbook
 
 User = get_user_model()
 
@@ -280,14 +286,108 @@ class AdminSalesReportView(APIView):
         report_data = SalesReportRepository.generate_report(
             start_date=start_date, end_date=end_date
         )
+        serializer = SalesReportSerializer(report_data)
 
-        return Response(
-            {
-                "period": {
-                    "start_date": start_date,
-                    "end_date": end_date
-                },
-                "data": report_data
-            }, status=status.HTTP_200_OK
-        )
+        return Response(serializer.data)
     
+class AdminSalesReportExcelExportView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        start_date = request.query_params.get("start_date")
+        end_date = request.query_params.get("end_date")
+
+        if start_date:
+            start_date = parse_date(start_date)
+            if not start_date:
+                return Response(
+                    {"detail": "Invalid start_date format. use YYYY-MM-DD"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+        if end_date:
+            end_date = parse_date(end_date)
+            if not end_date:
+                return Response(
+                    {"detail": "Invalid end_date format. Use YYYY-MM-DD"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        if start_date and end_date and start_date > end_date:
+            return Response(
+                {"detail": "start_date connot after end_date"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        report = SalesReportRepository.generate_report(
+            start_date=start_date, end_date=end_date
+        )["metrics"]
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Sales Report"
+
+        ws.append(["Metric", "Value"])
+
+        ws.append(["Total Bookings", report["total_bookings"]])
+        ws.append(["Total Amount Transferred", report["total_amount_transferred"]])
+        ws.append(["Total Platform Fee Collected", report["total_platform_fee_collected"]])
+        ws.append(["New Users", report["new_users_count"]])
+        ws.append(["New Agencies", report["new_agencies_count"]])
+        ws.append(["Average Booking Price", report["average_booking_price"]])
+        ws.append(["Aveage Platform Fee", report["average_platform_fee"]])
+        
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+        filename = "sales_report.xlsx"
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+        wb.save(response)
+        return response
+    
+class AdminSalesReportPDFView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        start_date = request.query_params.get("start_date")
+        end_date = request.query_params.get("end_date")
+
+        if start_date:
+            start_date = parse_date(start_date)
+            if not start_date:
+                return Response(
+                    {"detail": "Invalid start_date format. use YYYY-MM-DD"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+        if end_date:
+            end_date = parse_date(end_date)
+            if not end_date:
+                return Response(
+                    {"detail": "Invalid end_date format. Use YYYY-MM-DD"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        if start_date and end_date and start_date > end_date:
+            return Response(
+                {"detail": "start_date connot after end_date"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        report_data = SalesReportRepository.generate_report(
+            start_date=start_date,
+            end_date=end_date
+        )
+
+        pdf_bytes = generate_sales_report_pdf(report_data)
+
+        response = HttpResponse(
+            pdf_bytes,
+            content_type="application/pdf"
+        )
+
+        response["Content-Disposition"] = (
+            'attachment; filename="sales_report.pdf"'
+        )
+
+        return response

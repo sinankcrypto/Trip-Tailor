@@ -1,7 +1,8 @@
 from django.urls import path
 from admin_app.interface.views import (
     AdminLoginView, AdminProfileView, AdminLogoutView, UserListView, AgencyListView, AgencyDetailsView, 
-    AgencyVerifyView, AgencyRejectView, PlatformFeeView, AdminDashboardMetricsView, AdminSalesReportView
+    AgencyVerifyView, AgencyRejectView, PlatformFeeView, AdminDashboardMetricsView, AdminSalesReportView,
+    AdminSalesReportExcelExportView, AdminSalesReportPDFView
 ) 
 
 urlpatterns = [
@@ -16,4 +17,6 @@ urlpatterns = [
     path('agencies/<int:pk>/reject/', AgencyRejectView.as_view()),
     path('platform-fee/', PlatformFeeView.as_view(), name="platform-fee"),
     path('sales-report/', AdminSalesReportView.as_view(), name="admin-sales-report"),
+    path('sales-report/export/excel/', AdminSalesReportExcelExportView.as_view(), name='admin-sales-report-excel'),
+    path('sales-report/export/pdf/', AdminSalesReportPDFView.as_view(), name="admin-sales-report-pdf"),
 ]

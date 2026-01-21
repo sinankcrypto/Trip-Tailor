@@ -166,10 +166,10 @@ class PaymentRepository:
         qs = Transaction.objects.filter(status=Transaction.Status.COMPLETED)
 
         if start_date:
-            qs.filter(created_at__date__gte=start_date)
+            qs = qs.filter(created_at__date__gte=start_date)
 
         if end_date:
-            qs.filter(created_at__date__lte=end_date)
+            qs = qs.filter(created_at__date__lte=end_date)
 
         return qs.aggregate(total=Sum("amount"))["total"] or 0
     
@@ -178,10 +178,10 @@ class PaymentRepository:
         qs = Transaction.objects.filter(status=Transaction.Status.COMPLETED)
 
         if start_date:
-            qs.filter(created_at__date__gte=start_date)
+            qs = qs.filter(created_at__date__gte=start_date)
 
         if end_date:
-            qs.filter(created_at__date__lte=end_date)
+            qs = qs.filter(created_at__date__lte=end_date)
 
         return qs.aggregate(total=Sum("platform_fee"))["total"] or 0
     
@@ -190,9 +190,9 @@ class PaymentRepository:
         qs = Transaction.objects.filter(status=Transaction.Status.COMPLETED)
 
         if start_date:
-            qs.filter(created_at__date__gte=start_date)
+            qs = qs.filter(created_at__date__gte=start_date)
 
         if end_date:
-            qs.filter(created_at__date__lte=end_date)
+            qs = qs.filter(created_at__date__lte=end_date)
 
         return qs.aggregate(avg=Avg("platform_fee"))["avg"] or 0

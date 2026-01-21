@@ -54,10 +54,10 @@ class UserRepository:
         qs = User.objects.filter(is_staff=False,is_agency=False, is_active=True, is_deleted=False)
 
         if start_date:
-            qs.filter(created_at__date__gte=start_date)
+            qs = qs.filter(created_at__date__gte=start_date)
 
         if end_date:
-            qs.filter(created_at__date__lte=end_date)
+            qs = qs.filter(created_at__date__lte=end_date)
 
         return qs.count()
     
