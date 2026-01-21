@@ -3,6 +3,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics
 from admin_app.interface.serializers import AdminLoginSerializer, PlatformFeeSerializer, AdminDashboardMetricsSerializer
+from admin_app.repository.sales_report_repository import SalesReportRepository
+
 from user_auth.repository.user_repository import UserRepository
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
@@ -16,6 +18,7 @@ from core.pagination import StandardResultsSetPagination
 from agency_app.models import AgencyProfile
 from payments.repository.payment_repository import PaymentRepository
 
+from django.utils.dateparse import parse_date
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -245,3 +248,46 @@ class AdminDashboardMetricsView(APIView):
 
         serializer = AdminDashboardMetricsSerializer(payload)
         return Response(serializer.data)
+    
+class AdminSalesReportView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        start_date = request.query_params.get("start_date")
+        end_date = request.query_params.get("end_date")
+
+        if start_date:
+            start_date = parse_date(start_date)
+            if not start_date:
+                return Response(
+                    {"detail": "Invalid start_date format. use YYYY-MM-DD"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+        if end_date:
+            end_date = parse_date(end_date)
+            if not end_date:
+                return Response(
+                    {"detail": "Invalid end_date format. Use YYYY-MM-DD"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        if start_date and end_date and start_date > end_date:
+            return Response(
+                {"detail": "start_date connot after end_date"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        report_data = SalesReportRepository.generate_report(
+            start_date=start_date, end_date=end_date
+        )
+
+        return Response(
+            {
+                "period": {
+                    "start_date": start_date,
+                    "end_date": end_date
+                },
+                "data": report_data
+            }, status=status.HTTP_200_OK
+        )
+    

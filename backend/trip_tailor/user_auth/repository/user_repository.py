@@ -49,3 +49,15 @@ class UserRepository:
     def check_user_exists(email):
         return User.objects.filter(email=email, is_deleted=False).exists()
     
+    @staticmethod
+    def get_new_users_count_by_date(start_date=None, end_date=None):
+        qs = User.objects.filter(is_staff=False,is_agency=False, is_active=True, is_deleted=False)
+
+        if start_date:
+            qs.filter(created_at__date__gte=start_date)
+
+        if end_date:
+            qs.filter(created_at__date__lte=end_date)
+
+        return qs.count()
+    

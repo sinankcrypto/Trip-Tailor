@@ -1,7 +1,7 @@
 from ..models import Booking
 from django.shortcuts import get_object_or_404
 from core.constants import BookingStatus
-from django.db.models import Count
+from django.db.models import Count, Avg
 from django.db.models.functions import TruncMonth, TruncDate
 from django.utils import timezone
 from datetime import timedelta
@@ -153,3 +153,27 @@ class BookingRepository:
             })
 
         return result
+    
+    @staticmethod
+    def get_total_bookings_by_date(start_date=None, end_date=None):
+        qs = Booking.objects.all()
+
+        if start_date:
+            qs = qs.filter(created_at__date__gte=start_date)
+
+        if end_date:
+            qs = qs.filter(created_at__date__lte=end_date)
+
+        return qs.count()
+    
+    @staticmethod
+    def get_average_booking_price_by_date(start_date=None, end_date=None):
+        qs = Booking.objects.all()
+
+        if start_date:
+            qs = qs.filter(created_at__date__gte=start_date)
+        
+        if end_date:
+            qs = qs.filter(created_at__date__lte=end_date)
+
+        return qs.aggregate(avg=Avg("amount"))["avg"] or 0

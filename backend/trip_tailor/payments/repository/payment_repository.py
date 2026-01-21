@@ -6,7 +6,8 @@ from ..models import Transaction,Refund
 from bookings.repositories.booking_repository import BookingRepository
 from bookings.models import Booking
 from core.constants import PaymentStatus, RefundStatus
-from django.db.models import Sum
+from django.db.models import Sum, Avg
+from core.constants import PaymentStatus
 
 class PaymentRepository:
 
@@ -159,3 +160,39 @@ class PaymentRepository:
         ).aggregate(total_earning=Sum("amount")-Sum("platform_fee"))
 
         return queryset
+    
+    @staticmethod
+    def get_total_amount_transferred_by_date(start_date=None, end_date=None):
+        qs = Transaction.objects.filter(status=Transaction.Status.COMPLETED)
+
+        if start_date:
+            qs.filter(created_at__date__gte=start_date)
+
+        if end_date:
+            qs.filter(created_at__date__lte=end_date)
+
+        return qs.aggregate(total=Sum("amount"))["total"] or 0
+    
+    @staticmethod
+    def get_total_platform_fee_collected_by_date(start_date=None, end_date=None):
+        qs = Transaction.objects.filter(status=Transaction.Status.COMPLETED)
+
+        if start_date:
+            qs.filter(created_at__date__gte=start_date)
+
+        if end_date:
+            qs.filter(created_at__date__lte=end_date)
+
+        return qs.aggregate(total=Sum("platform_fee"))["total"] or 0
+    
+    @staticmethod
+    def get_average_platform_fee_by_date(start_date=None, end_date=None):
+        qs = Transaction.objects.filter(status=Transaction.Status.COMPLETED)
+
+        if start_date:
+            qs.filter(created_at__date__gte=start_date)
+
+        if end_date:
+            qs.filter(created_at__date__lte=end_date)
+
+        return qs.aggregate(avg=Avg("platform_fee"))["avg"] or 0

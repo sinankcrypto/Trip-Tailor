@@ -30,3 +30,15 @@ class AgencyRepository:
     def count_of_all_agencies():
         return AgencyRepository.get_all_agencies_with_profiles().count()
     
+    @staticmethod
+    def get_new_agencies_count_by_date(start_date=None, end_date=None):
+        qs = AgencyRepository.get_all_agencies_with_profiles()
+
+        if start_date:
+            qs = qs.filter(created_at__date__gte=start_date)
+
+        if end_date:
+            qs = qs.filter(created_at__date__lte=end_date)
+
+        return qs.count()
+    
