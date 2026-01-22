@@ -1,6 +1,6 @@
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from io import BytesIO
@@ -10,32 +10,60 @@ def generate_sales_report_pdf(report_data: dict) -> bytes:
     buffer = BytesIO()
 
     doc = SimpleDocTemplate(
-        buffer, 
+        buffer,
         pagesize=A4,
-        rightMargin=40,
-        leftMargin=40,
+        rightMargin=36,
+        leftMargin=36,
         topMargin=40,
         bottomMargin=40,
     )
 
     styles = getSampleStyleSheet()
+
+    styles.add(
+        ParagraphStyle(
+            name="AppTitle",
+            parent=styles["Title"],
+            fontSize=18,
+            leading=22,
+            spaceAfter=6,
+        )
+    )
+
+    styles.add(
+        ParagraphStyle(
+            name="ReportTitle",
+            parent=styles["Heading2"],
+            fontSize=14,
+            leading=18,
+            spaceAfter=10,
+        )
+    )
     elements = []
 
     # Title
 
-    elements.append(
-        Paragraph("<b>Sales Report</b>", styles["Title"])
-    )
-    elements.append(Spacer(1, 0.2 * inch))
+    elements.append(Paragraph("<b>Trip Tailor</b>", styles["AppTitle"]))
+    elements.append(Spacer(1, 6))
+
+    elements.append(Paragraph("Sales Report", styles["ReportTitle"]))
+    elements.append(Spacer(1, 10))
+
 
     # Time Period
 
     time_period = report_data.get("time_period", {})
     period_label = time_period.get("label", "All Time")
 
+    if period_label != "All Time":
+        period_text = f"{time_period.get('start_date')} - {time_period.get('end_date')}"
+    else:
+        period_text = period_label
+
     elements.append(
-        Paragraph(f"<b>Time Period:</b> {period_label}", styles["Normal"])
+        Paragraph(f"<b>Time Period:</b> {period_text}", styles["Normal"])
     )
+
 
     elements.append(
         Paragraph(
@@ -44,7 +72,7 @@ def generate_sales_report_pdf(report_data: dict) -> bytes:
         )
     )
 
-    elements.append(Spacer(1, 0.3 * inch))
+    elements.append(Spacer(1, 12))
 
     # Metrics Table
 
@@ -66,20 +94,43 @@ def generate_sales_report_pdf(report_data: dict) -> bytes:
     table.setStyle(
         TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
             ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
             ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
-            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-            ("BOTTOMPADDING", (0, 0), (-1, 0), 10),
-            ("TOPPADDING", (0, 0), (-1, 0), 10),
+
+            # 👇 tighter padding
+            ("TOPPADDING", (0, 0), (-1, -1), 6),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
         ])
     )
 
     elements.append(table)
 
+    def draw_header_footer(canvas, doc):
+        canvas.saveState()
+
+        # Footer text
+        footer_text = (
+            "© Trip Tailor | "
+            "For queries: triptailor.boss@gmail.com"
+        )
+
+        canvas.setFont("Helvetica", 9)
+        canvas.setFillColor(colors.grey)
+        canvas.drawCentredString(
+            A4[0] / 2,
+            20,
+            footer_text
+        )
+
+        canvas.restoreState()
+
     # Build PDF
-    doc.build(elements)
+    doc.build(
+        elements,
+        onFirstPage=draw_header_footer,
+        onLaterPages=draw_header_footer,
+    )
 
     pdf = buffer.getvalue()
     buffer.close()
