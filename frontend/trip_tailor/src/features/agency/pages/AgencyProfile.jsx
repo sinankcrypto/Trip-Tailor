@@ -201,17 +201,14 @@ const AgencyProfile = () => {
             <strong className="text-gray-700">Description:</strong> {profile.description}
           </div>
 
-          {/* Profile Picture */}
           {profile.profile_pic && (
             <div>
               <strong className="text-gray-700 block mb-1">Profile Picture:</strong>
               <img
-                src={`http://localhost:8000${profile.profile_pic}`}
+                src={profile.profile_pic}
                 alt="Profile"
                 className="h-24 rounded-md border cursor-pointer hover:opacity-80 transition"
-                onClick={() =>
-                  setPreviewImage(`http://localhost:8000${profile.profile_pic}`)
-                }
+                onClick={() => setPreviewImage(profile.profile_pic)}
               />
             </div>
           )}
@@ -221,12 +218,10 @@ const AgencyProfile = () => {
             <div>
               <strong className="text-gray-700 block mb-1">License Document:</strong>
               <img
-                src={`http://localhost:8000${profile.license_document}`}
+                src={profile.license_document}
                 alt="License"
                 className="h-24 rounded-md border cursor-pointer hover:opacity-80 transition"
-                onClick={() =>
-                  setPreviewImage(`http://localhost:8000${profile.license_document}`)
-                }
+                onClick={() => setPreviewImage(profile.license_document)}
               />
             </div>
           )}
