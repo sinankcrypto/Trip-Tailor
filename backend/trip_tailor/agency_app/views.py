@@ -3,6 +3,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 
 from agency_app.models import AgencyProfile
 from .repository.agency_repository import AgencyRepository
@@ -11,6 +12,7 @@ from rest_framework import status
 from .permissions import IsVerifiedAgency
 from bookings.repositories.booking_repository import BookingRepository
 from payments.repository.payment_repository import PaymentRepository
+from core.exceptions import ImageUploadError
 
 # Create your views here.
 
@@ -60,15 +62,21 @@ class AgencyProfileView(APIView):
         profile = AgencyRepository.get_profile(request.user)
         serializer = AgencyProfileSerializer(profile, data= request.data, partial= True)
 
-        if serializer.is_valid():
-            serializer.save() 
-
-            profile.status = AgencyProfile.Status.PENDING
-            profile.save(update_fields=['status'])
-
-            return Response(serializer.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=400)
+        try:
+            updated_profile = AgencyRepository.update_profile(
+                user=request.user,
+                data=serializer.validated_data,
+                files=request.FILES
+            )
+        except ImageUploadError:
+            raise ValidationError({"image":"Image upload failed. Please try again."})
         
-        return Response(serializer.errors, status=400)  
+        return Response(
+            AgencyProfileSerializer(updated_profile).data,
+            status=200
+        )
     
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]

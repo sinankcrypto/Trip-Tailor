@@ -1,5 +1,7 @@
 from agency_app.models import AgencyProfile
 from django.contrib.auth import get_user_model
+from users.infra.services.cloudinary_service import CloudinaryService
+from core.exceptions import ImageUploadError
 
 User = get_user_model()
 
@@ -13,11 +15,24 @@ class AgencyRepository:
         return AgencyProfile.objects.get(user=user)
     
     @staticmethod
-    def update_profile(user, data):
+    def update_profile(user, data, files=None):
         profile = AgencyProfile.objects.get(user=user)
+
+        files = files or {}
+
+        if files.get("profile_pic"):
+            profile.profile_pic = CloudinaryService.upload_image(files["profile_pic"])
+
+        if files.get("license_document"):
+            profile.license_document = CloudinaryService.upload_image(files["license_document"])
+
+        data.pop("profile_pic", None)
+        data.pop("license_document", None)
 
         for attr, value in data.items():
             setattr(profile, attr, value)
+
+        profile.status = AgencyProfile.Status.PENDING
         profile.save()
 
         return profile

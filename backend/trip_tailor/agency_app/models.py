@@ -11,8 +11,8 @@ class AgencyProfile(models.Model):
     agency_name = models.CharField(max_length=255)
     address = models.TextField()
     phone_number = models.CharField(max_length=15)
-    profile_pic = models.ImageField(upload_to='agency/profile_pics/')
-    license_document = models.ImageField(upload_to='agency/licenses/')
+    profile_pic = models.URLField(blank=True, null=True)
+    license_document = models.URLField(blank=True, null=True)
     description = models.TextField()
     stripe_account_id = models.CharField(max_length=255, blank=True, null=True)
     

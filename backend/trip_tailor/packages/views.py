@@ -79,7 +79,7 @@ class PackageUpdateView(generics.UpdateAPIView):
 
             serializer.instance = package
         except ImageUploadError:
-            raise ValidationError({"image":"Image upload failed. Please try again."})
+            raise   ({"image":"Image upload failed. Please try again."})
         
         except ValueError as e:
             raise ValidationError({"error":str(e)})
