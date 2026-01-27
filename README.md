@@ -1,17 +1,37 @@
 Trip Tailor 🌍
 
-A full-stack travel booking platform built with Django + React, where users can discover, customize, and book trips offered by verified travel agencies.
+A full-stack travel booking platform built with Django + React, where users can discover, personalize, and book travel experiences offered by verified agencies.
 
-🚀 Features
+🚀 Key Features
 👤 Authentication & Roles
 
 User, Agency, and Admin authentication
 
-JWT authentication with access & refresh tokens
+JWT-based authentication (access & refresh tokens)
 
 Secure cookie-based refresh token flow
 
 Role-based access control
+
+Email-based verification and booking notifications
+
+🧠 Smart Recommendations
+
+Personalized package recommendations for logged-in users
+
+Weighted recommendation logic based on:
+
+User-selected interests
+
+User interactions (views & bookings)
+
+Package popularity
+
+Automatic fallback to popular packages when insufficient data exists
+
+Guests see latest packages, while authenticated users see recommended packages
+
+Interest reminder UX to encourage personalization
 
 🧳 Travel & Booking
 
@@ -21,19 +41,29 @@ Filter by price, agency, and keywords
 
 Book packages with date validation
 
-Prevent duplicate/conflicting bookings
+Prevent duplicate or conflicting bookings
 
-Booking status lifecycle (pending, confirmed, completed, cancelled)
+Booking status lifecycle:
+
+Pending
+
+Confirmed
+
+Completed
+
+Cancelled
+
+Email notifications for booking-related actions (user & agency)
 
 💬 Real-Time Communication
 
 Real-time chat between users and agencies using WebSockets
 
-Message persistence with chat history
+Message persistence with full chat history
 
-Separate chat access per booking / conversation
+Separate conversations per booking
 
-Optimistic UI updates for smoother UX
+Optimistic UI updates for smooth user experience
 
 💳 Payments
 
@@ -41,19 +71,20 @@ Stripe payment gateway integration
 
 Secure checkout sessions
 
-Agency earnings tracking after platform fee
+Platform fee deduction
+
+Agency earnings tracking
 
 Transaction history for agencies
 
 📊 Dashboards
+Admin Dashboard
 
-Admin dashboard
+Total users, agencies, bookings, and earnings
 
-Total users, agencies, bookings, earnings
+Weekly & monthly analytics
 
-Monthly & weekly analytics
-
-Agency dashboard
+Agency Dashboard
 
 Total bookings
 
@@ -86,17 +117,21 @@ PostgreSQL
 
 JWT Authentication
 
+Celery (background tasks & emails)
+
 Frontend
 
 React (Vite)
 
 Tailwind CSS
 
-Recharts (analytics & charts)
-
 Axios
 
+Recharts (analytics & charts)
+
 WebSocket client for real-time features
+
+Toast-based UI feedback for user actions
 
 Payments
 
@@ -106,13 +141,23 @@ Stripe
 
 Repository pattern for ORM queries
 
-Clean separation of concerns (views, serializers, repositories)
+Clean separation of concerns:
+
+Views
+
+Serializers
+
+Services
+
+Repositories
 
 Token-based authentication
 
 Scalable real-time architecture using WebSockets
 
 Pagination, filtering, ordering, and search support
+
+Dockerized development environment
 
 📦 Setup
 1️⃣ Clone the repository
@@ -140,10 +185,24 @@ npm run dev
 
 Core booking flow completed
 
-Real-time chat implemented
+Smart recommendation system implemented
 
-Stripe payments live
+Real-time chat functional
 
-Dashboards functional
+Stripe payments integrated
 
-Actively expanding with industry-relevant features
+Dashboards live
+
+Email notifications for booking actions
+
+Actively expanding with advanced personalization & notification features
+
+🔮 Planned Enhancements
+
+Real-time in-app notifications
+
+Advanced recommendation tuning
+
+Performance optimizations
+
+Additional analytics & insights
