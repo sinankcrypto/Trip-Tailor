@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:8000/api/",
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true, 
 });
 
@@ -21,8 +21,8 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        await axios.post(
-          "http://localhost:8000/api/token/refresh-cookie/",
+        await apiClient.post(
+          "/token/refresh-cookie/",
           {},
           { withCredentials: true }
         );
