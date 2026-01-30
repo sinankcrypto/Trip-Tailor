@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useOtpVerification } from '../hooks/useOTPVerification'
+import { useOtpVerification } from '../hooks/useOtpVerification'
 import { useResetVerifyOtp } from '../hooks/useResetVerifyOtp'
 import { useOtpResend } from '../hooks/useOtpResend'
 import toast from 'react-hot-toast'
