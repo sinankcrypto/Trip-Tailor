@@ -3,7 +3,7 @@ import { Route, Routes } from 'react-router-dom'
 import MyPackagesPage from '../pages/MyPackagesPage'
 import CreatePackagePage from '../pages/CreatePackagePage'
 import EditPackagePage from '../pages/EditPackagePage'
-import AgencyPackageDetailsPage from '../pages/agencyPackageDetails'
+import AgencyPackageDetailsPage from '../pages/AgencyPackageDetails'
 import RequireAgencyAuth from '../../../auth/RequireAgencyAuth'
 import AgencyLayout from '../../../layouts/agency/AgencyLayout'
 
