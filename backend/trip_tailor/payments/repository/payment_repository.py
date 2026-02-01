@@ -7,6 +7,7 @@ from bookings.repositories.booking_repository import BookingRepository
 from bookings.models import Booking
 from core.constants import PaymentStatus, RefundStatus
 from django.db.models import Sum, Avg
+from django.db.models.functions import Coalesce
 from core.constants import PaymentStatus
 
 class PaymentRepository:
@@ -148,7 +149,7 @@ class PaymentRepository:
     def total_earning_and_total_platform_fee():
         queryset = Transaction.objects.filter(
             status = Transaction.Status.COMPLETED
-            ).aggregate(total_earning=Sum("amount"), total_platform_fee=Sum("platform_fee"))
+            ).aggregate(total_earning=Coalesce(Sum("amount"), 0), total_platform_fee=Coalesce(Sum("platform_fee"), 0))
 
         return queryset
     
