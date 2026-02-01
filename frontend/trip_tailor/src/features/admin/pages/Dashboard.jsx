@@ -77,7 +77,7 @@ const Dashboard = () => {
     { label: "Agencies", value: metrics.total_agencies },
     {
       label: "Earnings",
-      value: `₹${metrics.total_earnings.toLocaleString()}`,
+      value: `₹${(metrics.total_earnings ?? 0).toLocaleString()}`,
     },
   ];
 
@@ -188,12 +188,12 @@ const Dashboard = () => {
         {report && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
             <PreviewCard label="Total Bookings" value={report.metrics.total_bookings} />
-            <PreviewCard label="Total Amount" value={`₹${report.metrics.total_amount_transferred.toLocaleString()}`} />
-            <PreviewCard label="Platform Fee" value={`₹${report.metrics.total_platform_fee_collected.toLocaleString()}`} />
+            <PreviewCard label="Total Amount" value={`₹${(report.metrics.total_amount_transferred ?? 0).toLocaleString()}`} />
+            <PreviewCard label="Platform Fee" value={`₹${(report.metrics.total_platform_fee_collected ?? 0).toLocaleString()}`} />
             <PreviewCard label="New Users" value={report.metrics.new_users_count} />
             <PreviewCard label="New Agencies" value={report.metrics.new_agencies_count} />
-            <PreviewCard label="Avg Booking" value={`₹${report.metrics.average_booking_price}`} />
-            <PreviewCard label="Avg Platform Fee" value={`₹${report.metrics.average_platform_fee}`} />
+            <PreviewCard label="Avg Booking" value={`₹${(report.metrics.average_booking_price ?? 0).toLocaleString()}`} />
+            <PreviewCard label="Avg Platform Fee" value={`₹${(report.metrics.average_platform_fee ?? 0).toLocaleString()}`} />
           </div>
         )}
 
