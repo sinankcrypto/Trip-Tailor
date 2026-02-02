@@ -27,8 +27,6 @@ from bookings.repositories.booking_repository import BookingRepository
 from core.constants import TransactionStatus, PaymentStatus
 from .handlers.refund_handler import handle_refund_updated
 
-from stripe.error import SignatureVerificationError
-
 import stripe
 import json
 import logging
@@ -56,7 +54,7 @@ def stripe_webhook(request):
         #invalid payload
         logger.error("⚠️ Invalid payload received in Stripe webhook")
         return HttpResponse(status=400)
-    except SignatureVerificationError:
+    except stripe.SignatureVerificationError:
         #invalid signature
         logger.error("⚠️ Invalid Stripe signature")
         return HttpResponse(status=400)
