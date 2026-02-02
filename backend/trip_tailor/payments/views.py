@@ -54,7 +54,7 @@ def stripe_webhook(request):
         #invalid payload
         logger.error("⚠️ Invalid payload received in Stripe webhook")
         return HttpResponse(status=400)
-    except stripe.error.SignatureVerificationError:
+    except stripe.SignatureVerificationError:
         #invalid signature
         logger.error("⚠️ Invalid Stripe signature")
         return HttpResponse(status=400)
