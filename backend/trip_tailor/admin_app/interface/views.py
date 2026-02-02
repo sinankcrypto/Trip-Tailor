@@ -132,10 +132,8 @@ class AgencyDetailsView(APIView):
                 'agency_name': profile.agency_name,
                 'agency_id':profile.id,
                 'phone_number': profile.phone_number,
-                'profile_pic': request.build_absolute_uri(profile.profile_pic.url) if profile.profile_pic else None,
-                'license_document':(
-                    request.build_absolute_uri(profile.license_document.url) if profile.profile_pic else None
-                ), 
+                'profile_pic': profile.profile_pic,
+                'license_document': profile.license_document, 
                 'address': profile.address,
                 'description': profile.description,
                 'status': profile.status,
