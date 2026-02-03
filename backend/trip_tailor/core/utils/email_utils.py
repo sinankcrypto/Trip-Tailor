@@ -179,3 +179,54 @@ support@triptailor.com
 """
 
     send_email(subject, message, [email])
+
+def send_booking_cancellation_email(booking):
+    user = booking.user
+    package = booking.package
+    email = user.email
+
+    subject = "Booking Cancelled - Trip Tailor"
+    message = f"""
+Hi {user.username},
+
+Your booking for {package.title} has been cancelled.
+
+Booking Details:
+Trip Date: {booking.date}
+Duration: {package.duration} days
+Amount: ₹{booking.amount}
+
+If a refund is applicable, it will be processed as per our cancellation policy.
+
+If you have any questions or believe this was a mistake, please contact our support team.
+
+Thank you for choosing Trip Tailor.
+"""
+    send_email(subject, message, [email])
+
+def send_agency_booking_cancellation_email(booking):
+    agency = booking.package.agency
+    user = booking.user
+    package = booking.package
+    email = agency.user.email
+
+    subject = "Booking Cancelled - Trip Tailor"
+    message = f"""
+Hi {agency.agency_name},
+
+A booking for your package "{package.title}" has been cancelled.
+
+Booking Details:
+Booking ID: {booking.id}
+Customer Name: {user.username}
+Trip Date: {booking.date}
+Duration: {package.duration} days
+Amount: ₹{booking.amount}
+
+Please update your internal records accordingly.
+
+If you have any questions or need assistance, feel free to reach out to the Trip Tailor support team.
+
+Thank you for partnering with Trip Tailor.
+"""
+    send_email(subject, message, [email])

@@ -18,7 +18,8 @@ from agency_app.permissions import IsVerifiedAgency
 
 from django_filters.rest_framework import DjangoFilterBackend
 
-from core.tasks import send_booking_confirmation_email_task, send_agency_booking_notification_email_task
+from core.tasks import (send_booking_confirmation_email_task, send_agency_booking_notification_email_task,
+        send_booking_cancellation_email_task, send_agency_booking_cancellation_notification_email_task)
 from core.constants import BookingStatus, PaymentStatus, PaymentMethod
 from payments.repository.payment_repository import PaymentRepository
 from payments.repository.refund_repository import RefundRepository
@@ -170,6 +171,8 @@ class BookingViewSet(viewsets.ModelViewSet):
             booking.booking_status = BookingStatus.CANCELLED
             booking.cancelled_at = timezone.now()
             booking.save()
+            send_booking_cancellation_email_task.delay(booking.id)
+            send_agency_booking_cancellation_notification_email_task.delay(booking.id)
 
             logger.info(
                 "Booking %s cancelled by %s (user=%s, agency=%s)",

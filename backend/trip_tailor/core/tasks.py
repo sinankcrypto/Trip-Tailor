@@ -1,7 +1,8 @@
 from celery import shared_task
 from core.utils.email_utils import (send_otp_email, send_booking_confirmation_email, 
-                                    send_refund_failed_email, send_refund_success_email, send_refund_initiated_email,
-                                    send_agency_booking_notification_email)
+            send_refund_failed_email, send_refund_success_email, send_refund_initiated_email,
+            send_agency_booking_notification_email, send_booking_cancellation_email,
+            send_agency_booking_cancellation_email)
 from bookings.models import Booking
 import logging
 
@@ -73,6 +74,23 @@ def send_agency_booking_notification_email_task(self, booking_id):
     try:
         booking = Booking.objects.select_related('agency', 'package').get(id=booking_id)
         send_agency_booking_notification_email(booking)
+        logging.info("Booking notification email succesfully sent to agency")
+    except Exception as e:
+        self.retry(exc=e, countdown=30)
+
+@shared_task(bind=True, max_retries=3)
+def send_booking_cancellation_email_task(self, booking_id):
+    try:
+        booking = Booking.objects.select_related('user', 'package').get(id=booking_id)
+        send_booking_cancellation_email(booking)
+    except Exception as e:
+        self.retry(exc=e, countdown=30)
+
+@shared_task(bind=True, max_retries=3)
+def send_agency_booking_cancellation_notification_email_task(self, booking_id):
+    try:
+        booking = Booking.objects.select_related('agency', 'package').get(id=booking_id)
+        send_agency_booking_cancellation_email(booking)
         logging.info("Booking notification email succesfully sent to agency")
     except Exception as e:
         self.retry(exc=e, countdown=30)
