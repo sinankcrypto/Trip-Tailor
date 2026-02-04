@@ -21,7 +21,8 @@ class BookingSerializer(serializers.ModelSerializer):
         fields = [
             "id", "package", "package_title", "package_image", "package_duration",
             "user", "no_of_members", "no_of_adults", "no_of_kids", "amount", "date","agency_name",
-            "payment_method", "payment_status","booking_status","cancelled_at","username", "created_at", "user_email"
+            "payment_method", "payment_status","booking_status","cancelled_at","username", "created_at", "user_email",
+            "cancellation_reason","cancelled_by"
         ]
         read_only_fields =["amount", "payment_status", "user", "agency", "user_email"]
 
@@ -72,6 +73,7 @@ class UserBookingSerializer(BookingSerializer):
             "id", "package_title", "package_image", "package_duration",
             "agency_name", "date", "no_of_members", "amount",
             "payment_method", "payment_status", "booking_status", "created_at", "review",
+            "cancellation_reason", "cancelled_by"
         ]
 
     def get_review(self, obj):
@@ -133,3 +135,10 @@ class BookingStatusUpdateSerializer(serializers.ModelSerializer):
                 )
             
         return value
+    
+class BookingCancellationReasonSerializer(serializers.Serializer):
+    reason = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        max_length=300
+    )

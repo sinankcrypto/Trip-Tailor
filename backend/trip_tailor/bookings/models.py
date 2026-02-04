@@ -36,6 +36,17 @@ class Booking(models.Model):
     )
 
     cancelled_at = models.DateTimeField(null=True, blank=True)
+    cancellation_reason = models.TextField(null=True,blank=True)
+    cancelled_by = models.CharField(
+        max_length=20,
+        choices=[
+            ("user","User"),
+            ("agency","Agency"),
+            ("admin","Admin"),
+        ],
+        null=True,
+        blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -47,12 +58,6 @@ class Booking(models.Model):
             )
         ]
 
-    # ---- Helpers ----
-    def cancel(self):
-        """Cancel a booking and set timestamp."""
-        self.booking_status = self.BOOKING_CANCELLED
-        self.cancelled_at = timezone.now()
-        self.save()
 
     def __str__(self):
         return f"Booking #{self.pk} - {self.package} for {self.user}"

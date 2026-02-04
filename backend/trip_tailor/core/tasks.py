@@ -79,18 +79,18 @@ def send_agency_booking_notification_email_task(self, booking_id):
         self.retry(exc=e, countdown=30)
 
 @shared_task(bind=True, max_retries=3)
-def send_booking_cancellation_email_task(self, booking_id):
+def send_booking_cancellation_email_task(self, booking_id, reason):
     try:
         booking = Booking.objects.select_related('user', 'package').get(id=booking_id)
-        send_booking_cancellation_email(booking)
+        send_booking_cancellation_email(booking, reason)
     except Exception as e:
         self.retry(exc=e, countdown=30)
 
 @shared_task(bind=True, max_retries=3)
-def send_agency_booking_cancellation_notification_email_task(self, booking_id):
+def send_agency_booking_cancellation_notification_email_task(self, booking_id, reason):
     try:
         booking = Booking.objects.select_related('agency', 'package').get(id=booking_id)
-        send_agency_booking_cancellation_email(booking)
+        send_agency_booking_cancellation_email(booking, reason)
         logging.info("Booking notification email succesfully sent to agency")
     except Exception as e:
         self.retry(exc=e, countdown=30)

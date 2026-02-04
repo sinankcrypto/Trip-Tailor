@@ -180,7 +180,7 @@ support@triptailor.com
 
     send_email(subject, message, [email])
 
-def send_booking_cancellation_email(booking):
+def send_booking_cancellation_email(booking, reason=''):
     user = booking.user
     package = booking.package
     email = user.email
@@ -190,6 +190,8 @@ def send_booking_cancellation_email(booking):
 Hi {user.username},
 
 Your booking for {package.title} has been cancelled.
+
+Reason : {reason}
 
 Booking Details:
 Trip Date: {booking.date}
@@ -204,7 +206,7 @@ Thank you for choosing Trip Tailor.
 """
     send_email(subject, message, [email])
 
-def send_agency_booking_cancellation_email(booking):
+def send_agency_booking_cancellation_email(booking, reason=''):
     agency = booking.package.agency
     user = booking.user
     package = booking.package
@@ -215,6 +217,8 @@ def send_agency_booking_cancellation_email(booking):
 Hi {agency.agency_name},
 
 A booking for your package "{package.title}" has been cancelled.
+
+Reason: {reason}
 
 Booking Details:
 Booking ID: {booking.id}
