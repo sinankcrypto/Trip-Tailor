@@ -12,16 +12,20 @@ const UserBookingsPage = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [cancelReason, setCancelReason] = useState("");
 
   const openCancelModal = (bookingId) => {
     setSelectedBooking(bookingId);
+    setCancelReason("");
     setShowModal(true);
   };
 
   const confirmCancel = async () => {
     if (selectedBooking) {
       try{
-        await handleCancel(selectedBooking, refetch);
+        await handleCancel(selectedBooking, refetch,  {
+          reason: cancelReason.trim() || undefined,
+        });
       }
       catch (err) {
 
@@ -29,6 +33,7 @@ const UserBookingsPage = () => {
       finally {
         setShowModal(false);
         setSelectedBooking(null);
+        setCancelReason("");
       }  
     }
   };
@@ -201,8 +206,12 @@ const UserBookingsPage = () => {
         isOpen={showModal}
         title="Cancel Booking"
         message="Are you sure you want to cancel this booking? This action cannot be undone."
+        showInput
+        inputValue={cancelReason}
+        onInputChange={setCancelReason}
         onConfirm={confirmCancel}
         onCancel={() => setShowModal(false)}
+        confirmDisabled={cancelLoading}
       />
     </div>
   );

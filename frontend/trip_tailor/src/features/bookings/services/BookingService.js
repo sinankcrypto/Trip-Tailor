@@ -30,8 +30,8 @@ export const getBookings = async ({ page =1, pageSize = 10, ordering = null, fil
   return response.data;
 };
 
-export const cancelBooking = async (bookingId) => {
-  const response = await apiClient.post(`bookings/${bookingId}/cancel`);
+export const cancelBooking = async (bookingId, payload) => {
+  const response = await apiClient.post(`bookings/${bookingId}/cancel`, payload);
   return response.data;
 };
 

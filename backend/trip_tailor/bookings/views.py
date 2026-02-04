@@ -11,7 +11,8 @@ from .serializers import (
     BookingSerializer,
     UserBookingSerializer,
     PaymentStatusUpdateSerializer,
-    BookingStatusUpdateSerializer
+    BookingStatusUpdateSerializer,
+    BookingCancellationReasonSerializer
 )
 from .repositories.booking_repository import BookingRepository
 from agency_app.permissions import IsVerifiedAgency
@@ -122,14 +123,6 @@ class BookingViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        cutoff = timezone.now().date() + timedelta(days=1)
-        if booking.date < cutoff:
-            logger.warning("Late cancel attempt on booking %s (date=%s)", pk, booking.date)
-            return Response(
-                {"detail": "Cancellation is only allowed at least 24 hours before the booking date."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         is_owner = booking.user == request.user
         is_agency = hasattr(request.user, "agency_profile") and booking.agency == request.user.agency_profile
         is_staff = request.user.is_staff
@@ -140,6 +133,18 @@ class BookingViewSet(viewsets.ModelViewSet):
                 {"detail": "You do not have permission to cancel this booking."},
                 status=status.HTTP_403_FORBIDDEN,
             )
+        
+        cutoff = timezone.now().date() + timedelta(days=1)
+        if booking.date < cutoff and is_owner:
+            logger.warning("Late cancel attempt on booking %s (date=%s)", pk, booking.date)
+            return Response(
+                {"detail": "Cancellation is only allowed at least 24 hours before the booking date."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        reason_serializer = BookingCancellationReasonSerializer(data=request.data)
+        reason_serializer.is_valid(raise_exception=True)
+        reason = reason = reason_serializer.validated_data.get("reason", "").strip() or "not given"
 
         with transaction.atomic():
             booking = BookingRepository.get_by_id_for_update(pk)
@@ -170,9 +175,13 @@ class BookingViewSet(viewsets.ModelViewSet):
                 booking.payment_status = PaymentStatus.REFUND_PENDING
             booking.booking_status = BookingStatus.CANCELLED
             booking.cancelled_at = timezone.now()
+            booking.cancellation_reason = reason
+            booking.cancelled_by = (
+                "staff" if is_staff else "agency" if is_agency else "user"
+            )
             booking.save()
-            send_booking_cancellation_email_task.delay(booking.id)
-            send_agency_booking_cancellation_notification_email_task.delay(booking.id)
+            send_booking_cancellation_email_task.delay(booking.id, reason)
+            send_agency_booking_cancellation_notification_email_task.delay(booking.id, reason)
 
             logger.info(
                 "Booking %s cancelled by %s (user=%s, agency=%s)",

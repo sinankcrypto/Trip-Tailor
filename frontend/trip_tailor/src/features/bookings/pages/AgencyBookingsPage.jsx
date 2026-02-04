@@ -4,11 +4,43 @@ import { updatePaymentStatus } from "../services/BookingService";
 import { useUpdateBookingStatus } from "../hooks/useUpdateBookingStatus";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useCancelBooking } from "../hooks/useCancelBooking";
+import ConfirmModal from "../../../components/ConfirmModal";
+import { useState } from "react";
 
 const AgencyBookingsPage = () => {
   const { bookings, loading, error, refetch } = useGetAgencyBookings();
   const { mutate: updateBookingStatus, loading: statusLoading } = useUpdateBookingStatus();
   const navigate = useNavigate();
+  const {handleCancel, loading: cancelLoading} = useCancelBooking();
+
+  const [showModal, setShowModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [cancelReason, setCancelReason] = useState("");
+
+  const openCancelModal = (bookingId) => {
+    setSelectedBooking(bookingId);
+    setCancelReason("");
+    setShowModal(true);
+  };
+
+  const confirmCancel = async () => {
+    if (selectedBooking) {
+      try{
+        await handleCancel(selectedBooking, refetch,  {
+          reason: cancelReason.trim() || undefined,
+        });
+      }
+      catch (err) {
+
+      }
+      finally {
+        setShowModal(false);
+        setSelectedBooking(null);
+        setCancelReason("");
+      }  
+    }
+  };
 
   const handlePaymentStatusChange = async (id, status) => {
     try {
@@ -112,6 +144,18 @@ const AgencyBookingsPage = () => {
                         </button>
                     )}
 
+                    {b.booking_status === "ACTIVE" && (
+                      new Date(b.date) > new Date().setHours(0, 0, 0, 0) && (
+                      <button
+                        disabled={cancelLoading}
+                        onClick={() => openCancelModal(b.id)}
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 disabled:opacity-50"
+                      >
+                        {cancelLoading ? "Cancelling..." : "Cancel"}
+                      </button>
+                      )
+                    )}
+
                     {/* Reopen Cancelled */}
                     {b.booking_status === "CANCELLED" && (
                       <button
@@ -136,6 +180,18 @@ const AgencyBookingsPage = () => {
           </tbody>
         </table>
       </div>
+
+      <ConfirmModal
+        isOpen={showModal}
+        title="Cancel Booking"
+        message="Are you sure you want to cancel this booking? This action cannot be undone."
+        showInput
+        inputValue={cancelReason}
+        onInputChange={setCancelReason}
+        onConfirm={confirmCancel}
+        onCancel={() => setShowModal(false)}
+        confirmDisabled={cancelLoading}
+      />
     </div>
   );
 };

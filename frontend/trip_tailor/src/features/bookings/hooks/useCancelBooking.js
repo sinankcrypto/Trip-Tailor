@@ -7,11 +7,11 @@ export const useCancelBooking = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     
-    const handleCancel = async (bookingId, refetch) => {
+    const handleCancel = async (bookingId, refetch, payload = {}) => {
         setLoading(true)
         setError(null)
         try {
-            const data = await cancelBooking(bookingId);
+            const data = await cancelBooking(bookingId, payload);
 
             // On success
             toast.success("Booking cancelled successfully");
