@@ -134,6 +134,30 @@ const UserBookingDetailsPage = () => {
         </div>
       </div>
 
+      {booking.booking_status === "CANCELLED" && (
+        <div className="border-t pt-4 mt-4 space-y-2">
+          <p className="text-red-600 font-semibold">Booking Cancelled</p>
+
+          <div className="flex justify-between">
+            <p className="text-gray-500 text-sm">Cancelled By</p>
+            <p className="text-gray-800 font-medium">
+              {booking.cancelled_by === "user"
+                ? "User"
+                : booking.cancelled_by === "agency"
+                ? "Agency"
+                : "Admin"}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-gray-500 text-sm mb-1">Cancellation Reason</p>
+            <p className="text-gray-800 bg-gray-50 border border-gray-200 rounded-lg p-3">
+              {booking.cancellation_reason || "Not provided"}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Review Section (ONLY if completed) */}
       {booking.booking_status === "COMPLETED" && (
         <div className="mt-10 max-w-3xl mx-auto">
