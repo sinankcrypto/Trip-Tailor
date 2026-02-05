@@ -4,6 +4,7 @@ from datetime import timedelta
 from .models import Booking
 from reviews.models import Review
 from core.constants import BookingStatus, PaymentStatus
+from users.infra.models import UserProfile
 import logging
 
 logger = logging.Logger(__name__)
@@ -16,13 +17,16 @@ class BookingSerializer(serializers.ModelSerializer):
     agency_name = serializers.CharField(source="agency.agency_name", read_only=True) 
     user_email = serializers.CharField(source="user.email", read_only=True)
 
+    profile_completed = serializers.SerializerMethodField()
+    user_profile = serializers.SerializerMethodField()
+
     class Meta:
         model = Booking
         fields = [
             "id", "package", "package_title", "package_image", "package_duration",
             "user", "no_of_members", "no_of_adults", "no_of_kids", "amount", "date","agency_name",
             "payment_method", "payment_status","booking_status","cancelled_at","username", "created_at", "user_email",
-            "cancellation_reason","cancelled_by"
+            "cancellation_reason","cancelled_by", "profile_completed", "user_profile",
         ]
         read_only_fields =["amount", "payment_status", "user", "agency", "user_email"]
 
@@ -38,6 +42,30 @@ class BookingSerializer(serializers.ModelSerializer):
         validated_data["user"] = self.context["request"].user
 
         return super().create(validated_data)
+    
+    def get_profile_completed(self, obj):
+        profile = getattr(obj.user, "profile", None)
+
+        if not profile:
+            return False
+        
+        required_fields = [
+            profile.first_name,
+            profile.last_name,
+            profile.phone_number,
+        ]
+
+        return all(required_fields)
+    
+    def get_user_profile(self, obj):
+        profile = getattr(obj.user, "profile", None)
+        if not profile:
+            return None
+        
+        if not self.get_profile_completed(obj):
+            return None
+        
+        return BookingUserProfileSerializer(profile).data
     
 class PaymentStatusUpdateSerializer(serializers.ModelSerializer):
     payment_status = serializers.ChoiceField(choices=PaymentStatus.choices(), required=True)
@@ -142,3 +170,14 @@ class BookingCancellationReasonSerializer(serializers.Serializer):
         allow_blank=True,
         max_length=300
     )
+
+class BookingUserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = [
+            "first_name",
+            "last_name",
+            "phone_number",
+            "place",
+            "profile_pic",
+        ]
