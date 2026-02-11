@@ -63,6 +63,7 @@ urlpatterns = [
     path('api/chat/', include('chat.urls')),
     path('api/', include('reviews.urls')),
     path('api/recommendations/', include('recommendations.urls')),
+    path('api/', include('notifications.urls')),
 
 
     path("auth/", include("dj_rest_auth.urls")),
