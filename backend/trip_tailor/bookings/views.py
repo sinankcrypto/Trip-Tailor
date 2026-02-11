@@ -28,6 +28,8 @@ from payments.repository.payment_settings_repository import PaymentSettingsRepos
 from recommendations.repository.interaction_repository import InteractionRepository
 from core.constants import ActionChoices
 
+from notifications.services.notification_service import NotificationService
+
 import logging
 
 # Create your views here.
@@ -110,6 +112,7 @@ class BookingViewSet(viewsets.ModelViewSet):
             logger.info("New booking created: ID=%s by user=%s", booking.id, booking.user.id)
             send_booking_confirmation_email_task.delay(booking.id)
             send_agency_booking_notification_email_task.delay(booking.id)
+            NotificationService.notify_booking_created_for_agency(booking=booking)
 
 
     @action(detail=True, methods=["post"])
@@ -182,6 +185,8 @@ class BookingViewSet(viewsets.ModelViewSet):
             booking.save()
             send_booking_cancellation_email_task.delay(booking.id, reason)
             send_agency_booking_cancellation_notification_email_task.delay(booking.id, reason)
+
+            NotificationService.notify_booking_cancelled(booking=booking, cancelled_by=request.user)
 
             logger.info(
                 "Booking %s cancelled by %s (user=%s, agency=%s)",

@@ -7,6 +7,8 @@ from ..models import Transaction, Refund
 from core.constants import RefundStatus
 from core.tasks import send_refund_initiated_email_task
 
+from notifications.services.notification_service import NotificationService
+
 logger = logging.getLogger(__name__)
 
 class RefundRepository:
@@ -66,6 +68,7 @@ class RefundRepository:
                 package_name=booking.package.title,
                 amount=refund_amount//100,
             )
+            NotificationService.notify_refund_initiated(booking=booking, amount=stripe_refund.amount)
 
         except IntegrityError:
             refund = Refund.objects.get(stripe_refund=stripe_refund.id)

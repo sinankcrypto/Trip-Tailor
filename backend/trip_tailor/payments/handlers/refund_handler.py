@@ -5,6 +5,8 @@ from core.constants import RefundStatus, PaymentStatus
 from ..models import Transaction
 from core.tasks import send_refund_failed_email_task, send_refund_success_email_task
 
+from notifications.services.notification_service import NotificationService
+
 def handle_refund_updated(refund_data):
     stripe_refund_id = refund_data["id"]
     refund_status = refund_data["status"]
@@ -34,6 +36,7 @@ def handle_refund_updated(refund_data):
                 package_name=booking.package.title,
                 amount=refund_amount//100,
             )
+            NotificationService.notify_refund_processed(booking=booking, amount=refund_amount//100)
 
         elif refund_status in ("failed", "canceled"):
             refund.status = RefundStatus.FAILED
