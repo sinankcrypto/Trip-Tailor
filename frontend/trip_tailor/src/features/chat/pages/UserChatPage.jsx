@@ -12,7 +12,7 @@ export default function UserChatPage() {
       title="Chat with Agency"
       useFetchMessages={useGetChatMessages}
       useSendMessage={useSendMessage}
-      wsUrl={import.meta.env.VITE_WS_URL}
+      wsUrl={import.meta.env.VITE_WS_CHAT_URL}
     />
   );
 }
