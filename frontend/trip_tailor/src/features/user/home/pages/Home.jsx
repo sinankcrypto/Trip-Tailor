@@ -10,6 +10,8 @@ import { useUserLogout } from "../../auth/hooks/useUserLogout";
 import { useGetRecommendedPackages } from "../../../packages/hooks/useGetRecommendedPackages";
 import { useGetUserInterests } from "../../profile/hooks/useGetUserInterests";
 import UserInterestsModal from "../components/UserInterestModal";
+import { Bell } from "lucide-react";
+import { useNotifications } from "../../../../context/NotificationContext";
 
 
 const Home = () => {
@@ -19,6 +21,8 @@ const Home = () => {
 
   const [recommendationKey, setRecommendationKey] = useState(0);
   const [interestKey, setInterestKey] = useState(0);
+
+  const { unreadCount } = useNotifications()
 
   const {
     packages: recommendedPackages,
@@ -114,6 +118,14 @@ const Home = () => {
                 Login
               </button>
             )}
+            <div className="relative">
+              <Bell className="w-6 h-6" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
+                  {unreadCount}
+                </span>
+              )}
+            </div>
           </ul>
         </nav>
 
