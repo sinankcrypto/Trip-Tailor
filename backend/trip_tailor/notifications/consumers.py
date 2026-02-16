@@ -15,7 +15,7 @@ class NotificationConsumer(AsyncJsonWebsocketConsumer):
             self.channel_name
         )
 
-        await self.accept
+        await self.accept()
 
     async def disconnect(self, event):
         await self.channel_layer.group_discard(

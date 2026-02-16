@@ -17,16 +17,20 @@ from chat.middleware import JWTAuthMiddleware
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'trip_tailor.settings')
 
-def get_websocket_urlpatterns():
-    from chat.routing import websocket_urlpatterns
-    return websocket_urlpatterns
+django_asgi_app = get_asgi_application()
+
+import chat.routing
+import notifications.routing
 
 application = ProtocolTypeRouter({
     "http":get_asgi_application(),
     "websocket": AllowedHostsOriginValidator(
         AuthMiddlewareStack(
             JWTAuthMiddleware(
-                URLRouter(get_websocket_urlpatterns())
+                URLRouter(
+                    chat.routing.websocket_urlpatterns +
+                    notifications.routing.websocket_urlpatterns
+                )
             ))
     ),
 })

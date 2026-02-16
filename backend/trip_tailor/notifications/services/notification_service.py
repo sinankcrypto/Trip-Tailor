@@ -6,7 +6,7 @@ class NotificationService:
     def notify_booking_cancelled(booking, cancelled_by):
         if cancelled_by == booking.user:
             notification = NotificationRepository.create(
-                recipient=booking.agency,
+                recipient=booking.agency.user,
                 title="Booking Cancelled By User",
                 message=(
                     f"The booking for '{booking.package.title}' "
@@ -38,7 +38,7 @@ class NotificationService:
                 reference_id=booking.id,
             )
             NotificationRepository.create(
-                recipient=booking.agency,
+                recipient=booking.agency.user,
                 title="Booking Cancelled By Admin",
                 message=(
                     f"The booking for '{booking.package.title}' "
@@ -54,7 +54,7 @@ class NotificationService:
     @staticmethod
     def notify_booking_created_for_agency(booking):
         return NotificationRepository.create(
-            recipient=booking.agency,
+            recipient=booking.agency.user,
             title="Booking Created",
             message=(
                 f"New booking for '{booking.package.title}' "
