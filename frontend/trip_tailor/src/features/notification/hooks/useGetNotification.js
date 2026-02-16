@@ -17,8 +17,9 @@ const useGetNotifications = () => {
 
         setNotifications(data);
 
-        const unread = data.filter((n) => !n.is_read).length;
-        setUnreadCount(unread);
+        const unread = await apiClient.get("/notifications/unread_count/")
+        setUnreadCount(unread.data.unread);
+
       } catch (error) {
         console.error("Failed to fetch notifications", error);
       } finally {

@@ -12,7 +12,7 @@ import { useGetUserInterests } from "../../profile/hooks/useGetUserInterests";
 import UserInterestsModal from "../components/UserInterestModal";
 import { Bell } from "lucide-react";
 import { useNotifications } from "../../../../context/NotificationContext";
-
+import NotificationDropdown from "../../../notification/components/NotificationDropDown";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -23,6 +23,7 @@ const Home = () => {
   const [interestKey, setInterestKey] = useState(0);
 
   const { unreadCount } = useNotifications()
+  const [open, setOpen] = useState(false);
 
   const {
     packages: recommendedPackages,
@@ -119,12 +120,19 @@ const Home = () => {
               </button>
             )}
             <div className="relative">
-              <Bell className="w-6 h-6" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
-                  {unreadCount}
-                </span>
-              )}
+              <div onClick={() => setOpen((prev) => !prev)} className="cursor-pointer">
+                <Bell className="w-6 h-6" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
+                    {unreadCount}
+                  </span>
+                )}
+              </div>
+
+              <NotificationDropdown
+                isOpen={open}
+                onClose={() => setOpen(false)}
+              />
             </div>
           </ul>
         </nav>

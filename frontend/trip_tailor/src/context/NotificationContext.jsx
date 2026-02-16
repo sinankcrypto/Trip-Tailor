@@ -8,6 +8,7 @@ import React, {
 import toast from "react-hot-toast";
 import useNotificationSocket from "../features/notification/hooks/useNotificationSocket";
 import useGetNotifications from "../features/notification/hooks/useGetNotification";
+import { MarkAllNotificationsRead, markNotficationRead } from "../features/notification/services/notificationService";
 
 const NotificationContext = createContext();
 
@@ -42,7 +43,20 @@ export const NotificationProvider = ({ children }) => {
       setUnreadCount((prev) => prev + 1);
     }
 
-    toast(data.title);
+    toast.custom((t) => (
+      <div
+        className={`bg-white shadow-lg rounded-lg px-4 py-3 border-l-4 border-green-500 transition ${
+          t.visible ? "animate-enter" : "animate-leave"
+        }`}
+      >
+        <p className="font-semibold text-gray-800">{data.title}</p>
+        <p className="text-sm text-gray-600 truncate">
+          {data.message}
+        </p>
+      </div>
+    ), {
+      duration: 2000,
+    });
   }, []);
 
   useNotificationSocket({
@@ -51,21 +65,39 @@ export const NotificationProvider = ({ children }) => {
     onDisconnect: () => setConnected(false),
   });
 
-  const markAsRead = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) =>
-        n.id === id ? { ...n, is_read: true } : n
-      )
-    );
+  const markAsRead = async (id) => {
+    const notification = notifications.find((n) => n.id === id);
+    if(!notification || notification.is_read) return;
+
+    try{
+      await markNotficationRead(id);
+
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === id ? { ...n, is_read: true } : n
+        )
+      );
 
     setUnreadCount((prev) => Math.max(prev - 1, 0));
+    } catch (err) {
+      toast.error("Failed to mark notification as read");
+      console.error("Failed to mark notification as read", err);
+    }
+    
   };
 
-  const markAllAsRead = () => {
-    setNotifications((prev) =>
-      prev.map((n) => ({ ...n, is_read: true }))
-    );
-    setUnreadCount(0);
+  const markAllAsRead = async () => {
+    try{
+      await MarkAllNotificationsRead();
+
+      setNotifications((prev) =>
+        prev.map((n) => ({ ...n, is_read: true }))
+      );
+      setUnreadCount(0);
+    } catch (err) {
+      toast.error("Failed to mark all as read")
+      console.error("Failed to mark all as read", err);
+    }
   };
 
   return (

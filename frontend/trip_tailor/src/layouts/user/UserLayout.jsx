@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useUserLogout } from "../../features/user/auth/hooks/useUserLogout";
 import { Bell } from "lucide-react";
 import { useNotifications } from "../../context/NotificationContext";
+import NotificationDropdown from "../../features/notification/components/NotificationDropDown";
 
 const UserLayout = () => {
 
@@ -16,6 +17,8 @@ const UserLayout = () => {
 
   const { logout } = useUserLogout();
   const navigate = useNavigate();
+
+  const [open, setOpen] = useState(false);
 
   const handleLogout = () => {
     logout()
@@ -89,12 +92,19 @@ const UserLayout = () => {
             </button>
           )}
           <div className="relative">
-            <Bell className="w-6 h-6" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
-                {unreadCount}
-              </span>
-            )}
+            <div onClick={() => setOpen((prev) => !prev)} className="cursor-pointer">
+              <Bell className="w-6 h-6" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
+                  {unreadCount}
+                </span>
+              )}
+            </div>
+
+            <NotificationDropdown
+              isOpen={open}
+              onClose={() => setOpen(false)}
+            />
           </div>
         </ul>
       </nav>
