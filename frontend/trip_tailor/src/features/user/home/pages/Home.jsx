@@ -12,7 +12,7 @@ import { useGetUserInterests } from "../../profile/hooks/useGetUserInterests";
 import UserInterestsModal from "../components/UserInterestModal";
 import { Bell } from "lucide-react";
 import { useNotifications } from "../../../../context/NotificationContext";
-import NotificationDropdown from "../../../notification/components/NotificationDropDown";
+import NotificationDropdown from "../../../notification/components/NotificationDropdown";
 
 const Home = () => {
   const navigate = useNavigate();

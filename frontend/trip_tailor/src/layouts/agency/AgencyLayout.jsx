@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import useAgencyLogout from '../../features/agency/hooks/useAgencyLogout';
-import NotificationDropdown from '../../features/notification/components/NotificationDropDown';
 import { Bell } from 'lucide-react';
 import { useNotifications } from '../../context/NotificationContext';
+import NotificationDropdown from '../../features/notification/components/NotificationDropdown';
 
 const AgencyLayout = () => {
   const handleLogout = useAgencyLogout();
