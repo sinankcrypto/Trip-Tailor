@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useUserLogout } from "../../features/user/auth/hooks/useUserLogout";
 import { Bell } from "lucide-react";
 import { useNotifications } from "../../context/NotificationContext";
-import NotificationDropdown from "../../features/notification/components/NotificationDropDown";
+import NotificationDropdown from "../../features/notification/components/NotificationDropdown";
 
 const UserLayout = () => {
 
