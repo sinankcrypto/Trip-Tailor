@@ -1,6 +1,9 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import useAgencyLogout from '../../features/agency/hooks/useAgencyLogout';
+import NotificationDropdown from '../../features/notification/components/NotificationDropDown';
+import { Bell } from 'lucide-react';
+import { useNotifications } from '../../context/NotificationContext';
 
 const AgencyLayout = () => {
   const handleLogout = useAgencyLogout();
@@ -8,6 +11,10 @@ const AgencyLayout = () => {
 
   const isActive = (path) =>
     location.pathname === path ? 'bg-green-100 text-green-700 font-medium' : '';
+
+  const [open, setOpen] = useState(false)
+
+  const { unreadCount } = useNotifications()
 
   return (
     <div className="flex h-screen bg-gray-50 font-[Lexend] overflow-hidden">
@@ -73,8 +80,23 @@ const AgencyLayout = () => {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
-        <header className="bg-white shadow-sm p-5 border-b border-gray-100">
+        <header className="bg-white shadow-sm p-5 border-b border-gray-100 flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-700">Welcome back, Agency!</h1>
+          <div className="relative">
+            <div onClick={() => setOpen((prev) => !prev)} className="cursor-pointer">
+              <Bell className="w-6 h-6" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
+                  {unreadCount}
+                </span>
+              )}
+            </div>
+
+            <NotificationDropdown
+              isOpen={open}
+              onClose={() => setOpen(false)}
+            />
+          </div>
         </header>
 
         <div className="flex-1 overflow-y-auto p-6">

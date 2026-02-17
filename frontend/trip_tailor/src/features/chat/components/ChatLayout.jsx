@@ -1,7 +1,7 @@
 // components/ChatLayout.jsx
 import { useEffect, useRef, useState } from "react";
 
-const WS_URL = import.meta.env.VITE_WS_URL; // ← THIS READS YOUR .env
+const WS_URL = import.meta.env.VITE_WS_CHAT_URL; // ← THIS READS YOUR .env
 
 export default function ChatLayout({
   chatId,

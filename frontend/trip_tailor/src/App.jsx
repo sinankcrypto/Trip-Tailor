@@ -6,18 +6,23 @@ import PackageRoutes from './features/packages/routes/PackageRoutes'
 import { Toaster } from "react-hot-toast"
 import BookingRoutes from './features/bookings/routes/BookingRoutes'
 import { PaymentRoutes } from './features/payments/routes/PaymentRoutes'
+import { NotificationProvider } from './context/NotificationContext'
+import { useState } from 'react'
+import useNotificationSocket from './features/notification/hooks/useNotificationSocket'
 
 const App = () => {
   return (
-    <div className='App'>
-      <UserRoutes/>
-      <AdminRoutes/>
-      <AgencyRoutes/>
-      <PackageRoutes/>
-      <BookingRoutes/>
-      <PaymentRoutes/>
-      <Toaster position="top-right" />
-    </div>
+    <NotificationProvider>
+      <div className='App'>
+        <UserRoutes/>
+        <AdminRoutes/>
+        <AgencyRoutes/>
+        <PackageRoutes/>
+        <BookingRoutes/>
+        <PaymentRoutes/>
+        <Toaster position="top-right" />
+      </div>
+    </NotificationProvider>   
   )
 }
 

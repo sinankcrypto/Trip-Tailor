@@ -15,6 +15,7 @@ export function createChatSocket(packageId, onMessage) {
   };
 
   const token = getTokenFromCookie();
+  console.log("got token")
 
   if (!token) {
     console.error("No JWT token found. Is user logged in?");
@@ -22,7 +23,6 @@ export function createChatSocket(packageId, onMessage) {
     return null;
   }
 
-  // Pass token in query string — your Django middleware already supports this!
   const socket = new WebSocket(
     `ws://localhost:8000/ws/chat/package/${packageId}/?token=${token}`
   );

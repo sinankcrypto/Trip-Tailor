@@ -18,6 +18,8 @@ from .serializers import (
 logger = logging.getLogger(__name__)
 
 class ChatSessionCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+    
     def post(self, request, package_id):
         session = ChatRepository.get_or_create_session(
             package_id=package_id,

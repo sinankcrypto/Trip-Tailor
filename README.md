@@ -1,4 +1,4 @@
-Hello World 🌍
+Trip Tailor 🌍
 
 A full-stack travel booking platform built with Django + React, where users can discover, personalize, and book travel experiences offered by verified agencies.
 
