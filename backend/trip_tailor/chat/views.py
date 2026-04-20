@@ -55,7 +55,8 @@ class ChatMessagesAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, id):
-        session = ChatRepository.get_session_by_id(id)
+        user = request.user
+        session = ChatRepository.get_session_by_id_and_user(id, user)
         messages = ChatRepository.get_recent_messages(session)
         ChatRepository.mark_messages_as_read(session, request.user)
         serializer = MessageSerializer(messages, many=True, context={"request": request})

@@ -105,5 +105,16 @@ class ChatRepository:
         """
         return get_object_or_404(
             ChatSession,
-            pk=id
+            pk=id,
+        )
+    
+    @staticmethod
+    def get_session_by_id_and_user(id, user):
+        """
+        get session by session id
+        """
+        return get_object_or_404(
+            ChatSession,
+            pk=id,
+            user=user
         )
