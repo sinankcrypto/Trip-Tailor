@@ -9,7 +9,7 @@ export default function ChatLayout({
   useFetchMessages,
   useSendMessage,
 }) {
-  const { messages: initialMessages, loading, refetch } = useFetchMessages(chatId);
+  const { messages: initialMessages, loading, error, refetch } = useFetchMessages(chatId);
   
 
   const [messages, setMessages] = useState([])
@@ -85,6 +85,22 @@ export default function ChatLayout({
   };
 
   if (loading) return <p className="text-center py-10">Loading chat...</p>;
+
+  if (error) {
+    if (error.status === 404) {
+      return (
+        <p className="text-center py-10 text-red-500">
+          Chat not found or you don’t have access.
+        </p>
+      );
+    }
+
+    return (
+      <p className="text-center py-10 text-red-500">
+        {error.message}
+      </p>
+    );
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-84px)] max-w-4xl mx-auto bg-gray-100">
