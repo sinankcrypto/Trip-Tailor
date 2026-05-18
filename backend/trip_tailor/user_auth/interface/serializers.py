@@ -1,4 +1,7 @@
 from rest_framework import serializers
+import re
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from ..domain.models import CustomUser
 from agency_app.models import AgencyProfile
 
@@ -17,6 +20,25 @@ class UserSignupSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {'write_only': True},
         }
+
+    def validate_username(self, value):
+        pattern = r'^[A-Za-z][A-Za-z0-9_.-]{2,}$'
+
+        if not re.match(pattern, value):
+            raise serializers.ValidationError(
+                "Username must start with a letter and contain at least 3 characters."
+            )
+
+        return value
+    
+    def validate_password(self, value):
+        try:
+            validate_password(value)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(e.messages)
+        
+        return value
+            
     
     def validate(self, data):
         if data['password']!= data['confirm_password']:

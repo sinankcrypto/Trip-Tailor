@@ -67,6 +67,16 @@ class BookingSerializer(serializers.ModelSerializer):
         
         return BookingUserProfileSerializer(profile).data
     
+    def validate_date(self, value):
+        tomorrow = timezone.localdate() + timedelta(days=1)
+
+        if value < tomorrow:
+            raise serializers.ValidationError(
+                "Booking date must be at least tomorrow."
+            )
+
+        return value
+    
 class PaymentStatusUpdateSerializer(serializers.ModelSerializer):
     payment_status = serializers.ChoiceField(choices=PaymentStatus.choices(), required=True)
 
