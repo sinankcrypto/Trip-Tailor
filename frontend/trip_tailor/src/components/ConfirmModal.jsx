@@ -9,14 +9,13 @@ const ConfirmModal = ({
   showInput = false,
   inputValue = "",
   onInputChange = () => {},
-  maxWords = 50,
+  maxCharacters = 300,
   confirmDisabled = false,
 }) => {
   if (!isOpen) return null;
 
-  const words = inputValue.trim().split(/\s+/).filter(Boolean);
-  const wordCount = words.length;
-  const isOverLimit = wordCount > maxWords;
+  const characterCount = inputValue.length;
+  const isOverLimit = characterCount > maxCharacters;
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
@@ -33,7 +32,7 @@ const ConfirmModal = ({
               value={inputValue}
               onChange={(e) => onInputChange(e.target.value)}
               rows={3}
-              placeholder="Optional: tell us why you're cancelling (max 50 words)"
+              placeholder="Optional: tell us why you're cancelling (max 300 characters)"
               className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
             />
 
@@ -42,7 +41,7 @@ const ConfirmModal = ({
                 isOverLimit ? "text-red-500" : "text-gray-500"
               }`}
             >
-              {wordCount}/{maxWords} words
+              {characterCount}/{maxCharacters} characters
             </div>
           </div>
         )}
