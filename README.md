@@ -1,12 +1,13 @@
 # Trip Tailor 🌍
 
-A full-stack travel booking platform built with **Django + React**, where users can discover, customize, and book trips offered by verified travel agencies.
+A full-stack travel booking platform built with Django + React, where users can discover, personalize, and book travel experiences offered by verified agencies.
 
----
+🚀 Key Features
+👤 Authentication & Roles
 
 ## 🚀 Features
 
-### 👤 Authentication & Roles
+JWT-based authentication (access & refresh tokens)
 
 * User, Agency, and Admin authentication
 * JWT-based authentication (access & refresh tokens)
@@ -15,9 +16,27 @@ A full-stack travel booking platform built with **Django + React**, where users 
 
 ### 🧳 Travel & Booking
 
-* Browse, search, and filter travel packages
-* Booking validation (date validation & conflict prevention)
-* Booking lifecycle management:
+Email-based verification and booking notifications
+
+🧠 Smart Recommendations
+
+Personalized package recommendations for logged-in users
+
+Weighted recommendation logic based on:
+
+User-selected interests
+
+User interactions (views & bookings)
+
+Package popularity
+
+Automatic fallback to popular packages when insufficient data exists
+
+Guests see latest packages, while authenticated users see recommended packages
+
+Interest reminder UX to encourage personalization
+
+🧳 Travel & Booking
 
   * Pending
   * Confirmed
@@ -31,25 +50,29 @@ A full-stack travel booking platform built with **Django + React**, where users 
 * Booking-based conversations
 * Optimistic UI updates for smoother UX
 
-### 💳 Payments
+Prevent duplicate or conflicting bookings
 
-* Stripe payment gateway integration
-* Secure checkout sessions
-* Agency earnings tracking after platform fees
-* Transaction history for agencies
+Booking status lifecycle:
+
+Pending
+
+Confirmed
+
+Completed
+
+Cancelled
+
+Email notifications for booking-related actions (user & agency)
 
 ### 📊 Dashboards
 
 #### Admin Dashboard
 
-* Users, agencies, bookings, and earnings overview
-* Weekly & monthly analytics
+Message persistence with full chat history
 
-#### Agency Dashboard
+Separate conversations per booking
 
-* Booking and earnings insights
-* Daily bookings overview
-* Weekly trends with charts
+Optimistic UI updates for smooth user experience
 
 ### 🏢 Agency Management
 
@@ -59,26 +82,20 @@ A full-stack travel booking platform built with **Django + React**, where users 
 
 ---
 
-## 🛠️ Tech Stack
+Platform fee deduction
+
+Agency earnings tracking
 
 ### Backend
 
-* Django
-* Django REST Framework
-* Django Channels (WebSockets)
-* PostgreSQL
-* JWT Authentication
+📊 Dashboards
+Admin Dashboard
 
-### Frontend
+Total users, agencies, bookings, and earnings
 
-* React (Vite)
-* Tailwind CSS
-* Axios
-* Recharts
+Weekly & monthly analytics
 
-### Payments
-
-* Stripe
+Agency Dashboard
 
 ---
 
@@ -95,7 +112,69 @@ A full-stack travel booking platform built with **Django + React**, where users 
 
 ### 1️⃣ Clone the repository
 
-```bash
+Admin approval system (pending / approved / rejected)
+
+Agency-specific package management
+
+Separate agency portal
+
+🛠️ Tech Stack
+Backend
+
+Django
+
+Django REST Framework
+
+Django Channels (WebSockets)
+
+PostgreSQL
+
+JWT Authentication
+
+Celery (background tasks & emails)
+
+Frontend
+
+React (Vite)
+
+Tailwind CSS
+
+Axios
+
+Recharts (analytics & charts)
+
+WebSocket client for real-time features
+
+Toast-based UI feedback for user actions
+
+Payments
+
+Stripe
+
+🧱 Architecture & Practices
+
+Repository pattern for ORM queries
+
+Clean separation of concerns:
+
+Views
+
+Serializers
+
+Services
+
+Repositories
+
+Token-based authentication
+
+Scalable real-time architecture using WebSockets
+
+Pagination, filtering, ordering, and search support
+
+Dockerized development environment
+
+📦 Setup
+1️⃣ Clone the repository
 git clone https://github.com/sinankcrypto/Trip-Tailor.git
 cd Trip-Tailor
 ```
@@ -127,13 +206,28 @@ npm install
 npm run dev
 ```
 
----
+🌱 Current Status
 
-## 🌱 Current Status
+Core booking flow completed
 
-✅ Core booking flow completed
-✅ Real-time chat implemented
-✅ Stripe payments integrated
-✅ Dashboards functional
+Smart recommendation system implemented
 
-Actively expanding with more advanced travel and personalization features.
+Real-time chat functional
+
+Stripe payments integrated
+
+Dashboards live
+
+Email notifications for booking actions
+
+Actively expanding with advanced personalization & notification features
+
+🔮 Planned Enhancements
+
+Real-time in-app notifications
+
+Advanced recommendation tuning
+
+Performance optimizations
+
+Additional analytics & insights
