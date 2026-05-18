@@ -51,6 +51,7 @@ const VerifyOtp = () => {
         });
       } else {
         navigate("/user/login");
+        toast.success("OTP verified succesfully. please login")
       }
     } else {
       toast.error(result.message);

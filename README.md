@@ -1,17 +1,20 @@
-Trip Tailor 🌍
+# Trip Tailor 🌍
 
 A full-stack travel booking platform built with Django + React, where users can discover, personalize, and book travel experiences offered by verified agencies.
 
 🚀 Key Features
 👤 Authentication & Roles
 
-User, Agency, and Admin authentication
+## 🚀 Features
 
 JWT-based authentication (access & refresh tokens)
 
-Secure cookie-based refresh token flow
+* User, Agency, and Admin authentication
+* JWT-based authentication (access & refresh tokens)
+* Secure cookie-based refresh token flow
+* Role-based access control
 
-Role-based access control
+### 🧳 Travel & Booking
 
 Email-based verification and booking notifications
 
@@ -35,11 +38,17 @@ Interest reminder UX to encourage personalization
 
 🧳 Travel & Booking
 
-Browse and search travel packages
+  * Pending
+  * Confirmed
+  * Completed
+  * Cancelled
 
-Filter by price, agency, and keywords
+### 💬 Real-Time Communication
 
-Book packages with date validation
+* Real-time chat between users and agencies using WebSockets
+* Persistent chat history
+* Booking-based conversations
+* Optimistic UI updates for smoother UX
 
 Prevent duplicate or conflicting bookings
 
@@ -55,9 +64,9 @@ Cancelled
 
 Email notifications for booking-related actions (user & agency)
 
-💬 Real-Time Communication
+### 📊 Dashboards
 
-Real-time chat between users and agencies using WebSockets
+#### Admin Dashboard
 
 Message persistence with full chat history
 
@@ -65,17 +74,19 @@ Separate conversations per booking
 
 Optimistic UI updates for smooth user experience
 
-💳 Payments
+### 🏢 Agency Management
 
-Stripe payment gateway integration
+* Agency profile creation & verification
+* Admin approval workflow (pending / approved / rejected)
+* Agency-specific package management
 
-Secure checkout sessions
+---
 
 Platform fee deduction
 
 Agency earnings tracking
 
-Transaction history for agencies
+### Backend
 
 📊 Dashboards
 Admin Dashboard
@@ -86,17 +97,20 @@ Weekly & monthly analytics
 
 Agency Dashboard
 
-Total bookings
+---
 
-Total earnings (after platform fee)
+## 🧱 Architecture & Practices
 
-Today’s bookings
+* Repository pattern for ORM queries
+* Clean separation of concerns (Views, Serializers, Repositories)
+* Scalable real-time architecture with WebSockets
+* Pagination, filtering, ordering, and search support
 
-Weekly booking trends with charts
+---
 
-🏢 Agency Management
+## 📦 Setup
 
-Agency profile creation & verification flow
+### 1️⃣ Clone the repository
 
 Admin approval system (pending / approved / rejected)
 
@@ -163,23 +177,34 @@ Dockerized development environment
 1️⃣ Clone the repository
 git clone https://github.com/sinankcrypto/Trip-Tailor.git
 cd Trip-Tailor
+```
 
-2️⃣ Backend setup
+### 2️⃣ Backend setup
+
+```bash
 cd backend
+
 python -m venv venv
+
+# Activate virtual environment
+# Windows
+venv\Scripts\activate
+
+# Mac/Linux
 source venv/bin/activate
+
 pip install -r requirements.txt
-
-
-Set environment variables and run:
-
 python manage.py migrate
 python manage.py runserver
+```
 
-3️⃣ Frontend setup
+### 3️⃣ Frontend setup
+
+```bash
 cd frontend
 npm install
 npm run dev
+```
 
 🌱 Current Status
 
