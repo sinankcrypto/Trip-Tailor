@@ -1,149 +1,139 @@
-Trip Tailor 🌍
+# Trip Tailor 🌍
 
-A full-stack travel booking platform built with Django + React, where users can discover, customize, and book trips offered by verified travel agencies.
+A full-stack travel booking platform built with **Django + React**, where users can discover, customize, and book trips offered by verified travel agencies.
 
-🚀 Features
-👤 Authentication & Roles
+---
 
-User, Agency, and Admin authentication
+## 🚀 Features
 
-JWT authentication with access & refresh tokens
+### 👤 Authentication & Roles
 
-Secure cookie-based refresh token flow
+* User, Agency, and Admin authentication
+* JWT-based authentication (access & refresh tokens)
+* Secure cookie-based refresh token flow
+* Role-based access control
 
-Role-based access control
+### 🧳 Travel & Booking
 
-🧳 Travel & Booking
+* Browse, search, and filter travel packages
+* Booking validation (date validation & conflict prevention)
+* Booking lifecycle management:
 
-Browse and search travel packages
+  * Pending
+  * Confirmed
+  * Completed
+  * Cancelled
 
-Filter by price, agency, and keywords
+### 💬 Real-Time Communication
 
-Book packages with date validation
+* Real-time chat between users and agencies using WebSockets
+* Persistent chat history
+* Booking-based conversations
+* Optimistic UI updates for smoother UX
 
-Prevent duplicate/conflicting bookings
+### 💳 Payments
 
-Booking status lifecycle (pending, confirmed, completed, cancelled)
+* Stripe payment gateway integration
+* Secure checkout sessions
+* Agency earnings tracking after platform fees
+* Transaction history for agencies
 
-💬 Real-Time Communication
+### 📊 Dashboards
 
-Real-time chat between users and agencies using WebSockets
+#### Admin Dashboard
 
-Message persistence with chat history
+* Users, agencies, bookings, and earnings overview
+* Weekly & monthly analytics
 
-Separate chat access per booking / conversation
+#### Agency Dashboard
 
-Optimistic UI updates for smoother UX
+* Booking and earnings insights
+* Daily bookings overview
+* Weekly trends with charts
 
-💳 Payments
+### 🏢 Agency Management
 
-Stripe payment gateway integration
+* Agency profile creation & verification
+* Admin approval workflow (pending / approved / rejected)
+* Agency-specific package management
 
-Secure checkout sessions
+---
 
-Agency earnings tracking after platform fee
+## 🛠️ Tech Stack
 
-Transaction history for agencies
+### Backend
 
-📊 Dashboards
+* Django
+* Django REST Framework
+* Django Channels (WebSockets)
+* PostgreSQL
+* JWT Authentication
 
-Admin dashboard
+### Frontend
 
-Total users, agencies, bookings, earnings
+* React (Vite)
+* Tailwind CSS
+* Axios
+* Recharts
 
-Monthly & weekly analytics
+### Payments
 
-Agency dashboard
+* Stripe
 
-Total bookings
+---
 
-Total earnings (after platform fee)
+## 🧱 Architecture & Practices
 
-Today’s bookings
+* Repository pattern for ORM queries
+* Clean separation of concerns (Views, Serializers, Repositories)
+* Scalable real-time architecture with WebSockets
+* Pagination, filtering, ordering, and search support
 
-Weekly booking trends with charts
+---
 
-🏢 Agency Management
+## 📦 Setup
 
-Agency profile creation & verification flow
+### 1️⃣ Clone the repository
 
-Admin approval system (pending / approved / rejected)
-
-Agency-specific package management
-
-Separate agency portal
-
-🛠️ Tech Stack
-Backend
-
-Django
-
-Django REST Framework
-
-Django Channels (WebSockets)
-
-PostgreSQL
-
-JWT Authentication
-
-Frontend
-
-React (Vite)
-
-Tailwind CSS
-
-Recharts (analytics & charts)
-
-Axios
-
-WebSocket client for real-time features
-
-Payments
-
-Stripe
-
-🧱 Architecture & Practices
-
-Repository pattern for ORM queries
-
-Clean separation of concerns (views, serializers, repositories)
-
-Token-based authentication
-
-Scalable real-time architecture using WebSockets
-
-Pagination, filtering, ordering, and search support
-
-📦 Setup
-1️⃣ Clone the repository
+```bash
 git clone https://github.com/sinankcrypto/Trip-Tailor.git
 cd Trip-Tailor
+```
 
-2️⃣ Backend setup
+### 2️⃣ Backend setup
+
+```bash
 cd backend
+
 python -m venv venv
+
+# Activate virtual environment
+# Windows
+venv\Scripts\activate
+
+# Mac/Linux
 source venv/bin/activate
+
 pip install -r requirements.txt
-
-
-Set environment variables and run:
-
 python manage.py migrate
 python manage.py runserver
+```
 
-3️⃣ Frontend setup
+### 3️⃣ Frontend setup
+
+```bash
 cd frontend
 npm install
 npm run dev
+```
 
-🌱 Current Status
+---
 
-Core booking flow completed
+## 🌱 Current Status
 
-Real-time chat implemented
+✅ Core booking flow completed
+✅ Real-time chat implemented
+✅ Stripe payments integrated
+✅ Dashboards functional
 
-Stripe payments live
-
-Dashboards functional
-
-Actively expanding with industry-relevant features
+Actively expanding with more advanced travel and personalization features.
