@@ -37,7 +37,7 @@ export const useAgencyPaymentSettings = () => {
       if (data.url) {
         window.location.href = data.url; // redirect to Stripe onboarding
       }
-      toast.success("Connected to stripe")
+      toast.success("Onboarding initiated")
     } catch (err) {
       setError("Failed to connect with Stripe.");
     } finally {
