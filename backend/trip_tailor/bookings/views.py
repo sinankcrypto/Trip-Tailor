@@ -6,6 +6,7 @@ from django.db import transaction
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta, datetime
+from decimal import Decimal
 
 from .serializers import (
     BookingSerializer,
@@ -167,7 +168,10 @@ class BookingViewSet(viewsets.ModelViewSet):
                         reason="requested_by_customer",
                     )
                 else:
-                    refund_amount = int(booking.amount * 0.8)
+                    refund_amount = int(
+                        Decimal(str(booking.amount)) *
+                        settings.BOOKING_REFUND_PERCENTAGE
+                    )
 
                     RefundRepository.refund_booking(
                         booking=booking,

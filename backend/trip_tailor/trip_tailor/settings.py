@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 from decouple import config, Csv
 from datetime import timedelta
+from decimal import Decimal
 import os
 import environ
 import cloudinary
@@ -329,6 +330,13 @@ CHANNEL_LAYERS = {
 }
 
 BOOKING_DATE_BUFFER_DAYS = config("BOOKING_DATE_BUFFER_DAYS", cast=int, default=5)
+BOOKING_REFUND_PERCENTAGE = Decimal(
+    config(
+        "BOOKING_REFUND_PERCENTAGE",
+        default="0.80"
+    )
+)
+
 INTERACTION_DEDUP_WINDOW_MINUTES = config(
     "INTERACTION_DEDUP_WINDOW_MINUTES",
     default=15,
