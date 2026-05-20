@@ -1,6 +1,8 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 
+from users.infra.models import UserProfile
+
 User = get_user_model()
 
 class UserRepository:
@@ -25,7 +27,13 @@ class UserRepository:
         return User.objects.filter(is_superuser= False, is_agency= False, is_deleted= False).order_by("-created_at")
     
     @staticmethod
-    def get_or_create_google_user(email: str, username: str, is_agency: bool= False):
+    def get_or_create_google_user(
+        email: str,
+        username: str,
+        is_agency: bool = False,
+        name: str = "",
+        picture: str = None
+    ):
         user, created = User.objects.get_or_create(
             email = email,
             defaults= {
@@ -38,6 +46,18 @@ class UserRepository:
         if created:
             user.set_unusable_password()
             user.save()
+
+            name_parts = name.strip().split(maxsplit=1)
+
+            first_name = name_parts[0] if name_parts else ""
+            last_name = name_parts[1] if len(name_parts) > 1 else ""
+
+            UserProfile.objects.create(
+                user=user,
+                first_name=first_name,
+                last_name=last_name,
+                profile_pic=picture
+            )
 
         return user, created
     
