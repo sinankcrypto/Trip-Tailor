@@ -60,7 +60,6 @@ const Signup = () => {
 
     try {
       await signup({ ...form, role });
-      toast.success("Sign up successful! Please verify your email.");
     } catch (err) {
       const errorData = err?.response?.data;
       let message = "Signup failed";

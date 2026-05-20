@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { signupUser } from "../services/authService";
+import toast from "react-hot-toast";
 
 export const useUserSignup = () => {
     const navigate = useNavigate()
@@ -8,6 +9,7 @@ export const useUserSignup = () => {
         try{
             const res = await signupUser(formData)
             console.log(res.message)
+            toast.success("Sign up successful! Please verify your email.");
 
             navigate('/user/verify-otp',{
                 state: {
