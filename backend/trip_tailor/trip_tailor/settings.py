@@ -342,3 +342,6 @@ INTERACTION_DEDUP_WINDOW_MINUTES = config(
     default=15,
     cast=int
 )
+
+SESSION_COOKIE_SAMESITE = config("SESSION_COOKIE_SAMESITE", default="Lax")
+SESSION_COOKIE_SECURE = config("SESSION_COOKIE_SECURE", default=False, cast=bool)
