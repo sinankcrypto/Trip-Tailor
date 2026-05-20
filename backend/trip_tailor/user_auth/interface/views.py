@@ -259,8 +259,11 @@ class GoogleLoginView(APIView):
             return Response({"detail":"Invalid Google token"},status= status.HTTP_400_BAD_REQUEST)
         
         user_info = response.json()
+
         email = user_info.get("email")
         name = user_info.get("name","")
+        picture = user_info.get("picture")
+
         username = email
 
         if not email:
@@ -269,7 +272,9 @@ class GoogleLoginView(APIView):
         user, created = UserRepository.get_or_create_google_user(
             email=email,
             username=username,
-            is_agency=is_agency
+            is_agency=is_agency,
+            name=name,
+            picture=picture
         )
 
         refresh = RefreshToken.for_user(user)
